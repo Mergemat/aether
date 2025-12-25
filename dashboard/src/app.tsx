@@ -24,20 +24,14 @@ export default function App() {
   const setActiveGestures = useSetAtom(activeGesturesAtom);
   const setCurrentHandData = useSetAtom(currentHandDataAtom);
 
-  // Subscribe to the base mappings (ids/config), not the high-freq values
   const mappings = useAtomValue(mappingsAtom);
   const { setMappings, calibrate, updateMapping, deleteMapping, addMapping } =
     useMappingOperations();
 
   useMappingsPersistence(mappings, setMappings);
 
-  const {
-    liveValues,
-    smoothedValues,
-    lastTrigger,
-    latestHandDataRef,
-    mappingsRef,
-  } = useDetectionState(mappings);
+  const { liveValues, smoothedValues, lastTrigger, latestHandDataRef } =
+    useDetectionState();
 
   useLiveValues(liveValues);
 
@@ -46,7 +40,6 @@ export default function App() {
     canvasRef,
     onGestures: ({ left: leftGesture, right: rightGesture }) =>
       setActiveGestures((prev) =>
-        // only update if the gesture has changed
         leftGesture !== prev.left || rightGesture !== prev.right
           ? { left: leftGesture, right: rightGesture }
           : prev
@@ -76,7 +69,7 @@ export default function App() {
   }, [isReady]);
 
   const startDetect = () => {
-    detect(mappingsRef.current, ws, liveValues, smoothedValues, lastTrigger);
+    detect(mappings, ws, liveValues, smoothedValues, lastTrigger);
   };
 
   const handleCalibrate = useCallback(
@@ -96,7 +89,6 @@ export default function App() {
             onDetectStart={startDetect}
             videoRef={videoRef}
           />
-          {/* SensorDataDisplay should call useAtomValue(currentHandDataAtom) internally */}
           <SensorDataDisplay />
         </div>
 
@@ -104,7 +96,7 @@ export default function App() {
           {mappings.map((m) => (
             <MappingCard
               key={m.id}
-              mapping={m} // Ensure this is 'mapping', not 'mappingId'
+              mapping={m}
               onCalibrate={handleCalibrate}
               onDelete={deleteMapping}
               onUpdate={updateMapping}

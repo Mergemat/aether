@@ -12,17 +12,123 @@ import { clamp, SMOOTHING } from "@/utils";
 
 interface UseGestureRecognitionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
-
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
-
   onGestures: (gestures: { left: string; right: string }) => void;
-
   onHandData: (handData: {
     left: HandData | null;
-
     right: HandData | null;
   }) => void;
 }
+
+const processTrigger = (
+  m: Mapping,
+  ws: React.RefObject<WebSocket | null>,
+  lastTrigger: React.RefObject<Record<string, number>>
+) => {
+  const now = performance.now();
+  if ((lastTrigger.current[m.id] || 0) + 400 > now) {
+    return false;
+  }
+  lastTrigger.current[m.id] = now;
+  ws.current?.send(JSON.stringify({ address: m.address, value: 1 }));
+  return true;
+};
+
+const processFaderOrKnob = (
+  m: Mapping,
+  inputVal: number,
+  ws: React.RefObject<WebSocket | null>,
+  liveValues: React.RefObject<Record<string, number>>,
+  smoothedValues: React.RefObject<Record<string, number>>
+) => {
+  const targetVal = clamp(
+    (inputVal - m.range.min) / (m.range.max - m.range.min || 0.001),
+    0,
+    1
+  );
+
+  const prev = smoothedValues.current[m.id] ?? targetVal;
+  const smoothVal = targetVal * SMOOTHING + prev * (1 - SMOOTHING);
+
+  smoothedValues.current[m.id] = smoothVal;
+
+  if (Math.abs(prev - smoothVal) > 0.001) {
+    liveValues.current[m.id] = smoothVal;
+    ws.current?.send(
+      JSON.stringify({
+        address: m.address,
+        value: Number(smoothVal.toFixed(3)),
+      })
+    );
+  }
+};
+
+const processMapping = (
+  m: Mapping,
+  hand: "left" | "right",
+  gesture: string,
+  y: number,
+  rot: number,
+  ws: React.RefObject<WebSocket | null>,
+  liveValues: React.RefObject<Record<string, number>>,
+  smoothedValues: React.RefObject<Record<string, number>>,
+  lastTrigger: React.RefObject<Record<string, number>>
+) => {
+  if (!m.enabled || m.hand !== hand || m.gesture !== gesture) {
+    return;
+  }
+
+  if (m.mode === "trigger") {
+    processTrigger(m, ws, lastTrigger);
+  } else {
+    const inputVal = m.mode === "knob" ? rot : y;
+    processFaderOrKnob(m, inputVal, ws, liveValues, smoothedValues);
+  }
+};
+
+const processHandLandmarks = (
+  lm: Array<{ x: number; y: number; z: number }>,
+  i: number,
+  res: {
+    gestures?: Array<Array<{ categoryName: string; score: number }>>;
+    handedness: Array<Array<{ categoryName: string; score: number }>>;
+  },
+  currentGestures: { left: string; right: string },
+  currentHandData: { left: HandData | null; right: HandData | null },
+  mappings: Mapping[],
+  ws: React.RefObject<WebSocket | null>,
+  liveValues: React.RefObject<Record<string, number>>,
+  smoothedValues: React.RefObject<Record<string, number>>,
+  lastTrigger: React.RefObject<Record<string, number>>
+) => {
+  const gesture = res.gestures?.[i]?.[0]?.categoryName || "None";
+  const hand = res.handedness[i][0].categoryName.toLowerCase() as
+    | "left"
+    | "right";
+
+  const y = 1 - lm[9].y;
+  const rot = Math.atan2(
+    lm[17].y - lm[5].y,
+    hand === "left" ? lm[17].x - lm[5].x : lm[5].x - lm[17].x
+  );
+
+  currentGestures[hand] = gesture;
+  currentHandData[hand] = { y, rot };
+
+  for (const m of mappings) {
+    processMapping(
+      m,
+      hand,
+      gesture,
+      y,
+      rot,
+      ws,
+      liveValues,
+      smoothedValues,
+      lastTrigger
+    );
+  }
+};
 
 export const useGestureRecognition = ({
   videoRef,
@@ -81,7 +187,6 @@ export const useGestureRecognition = ({
       const res = rec.recognizeForVideo(video, performance.now());
       const ctx = canvasRef.current?.getContext("2d", { alpha: false });
 
-      // Drawing optimization: only draw if landmarks exist
       if (ctx && canvasRef.current && res.landmarks) {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
         const drawingUtils = new DrawingUtils(ctx);
@@ -95,72 +200,29 @@ export const useGestureRecognition = ({
       const currentHandData: { left: HandData | null; right: HandData | null } =
         { left: null, right: null };
 
-      if (res.landmarks?.length) {
-        // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: <idgaf for now>
-        res.landmarks.forEach((lm, i) => {
-          const gesture = res.gestures?.[i]?.[0]?.categoryName || "None";
-          const hand = res.handedness[i][0].categoryName.toLowerCase() as
-            | "left"
-            | "right";
+      const processLandmarks = () => {
+        if (!res.landmarks?.length) {
+          return;
+        }
 
-          console.log(hand, gesture);
-
-          // Math optimizations
-          const y = 1 - lm[9].y;
-          const rot = Math.atan2(
-            lm[17].y - lm[5].y,
-            hand === "left" ? lm[17].x - lm[5].x : lm[5].x - lm[17].x
+        for (let i = 0; i < res.landmarks.length; i++) {
+          processHandLandmarks(
+            res.landmarks[i],
+            i,
+            res,
+            currentGestures,
+            currentHandData,
+            mappings,
+            ws,
+            liveValues,
+            smoothedValues,
+            lastTrigger
           );
+        }
+      };
 
-          currentGestures[hand] = gesture;
-          currentHandData[hand] = { y, rot };
+      processLandmarks();
 
-          // Optimized Mapping Loop
-          // biome-ignore lint/style/useForOf: <idgaf for now>
-          for (let j = 0; j < mappings.length; j++) {
-            const m = mappings[j];
-            if (!m.enabled || m.hand !== hand || m.gesture !== gesture) {
-              continue;
-            }
-
-            if (m.mode === "trigger") {
-              const now = performance.now();
-              if ((lastTrigger.current[m.id] || 0) + 400 > now) {
-                continue;
-              }
-
-              lastTrigger.current[m.id] = now;
-              ws.current?.send(
-                JSON.stringify({ address: m.address, value: 1 })
-              );
-            } else {
-              const inputVal = m.mode === "knob" ? rot : y;
-              const targetVal = clamp(
-                (inputVal - m.range.min) / (m.range.max - m.range.min || 0.001),
-                0,
-                1
-              );
-
-              const prev = smoothedValues.current[m.id] ?? targetVal;
-              const smoothVal = targetVal * SMOOTHING + prev * (1 - SMOOTHING);
-
-              smoothedValues.current[m.id] = smoothVal;
-              if (Math.abs(prev - smoothVal) > 0.001) {
-                // Threshold to reduce WS traffic
-                liveValues.current[m.id] = smoothVal;
-                ws.current?.send(
-                  JSON.stringify({
-                    address: m.address,
-                    value: Number(smoothVal.toFixed(3)),
-                  })
-                );
-              }
-            }
-          }
-        });
-      }
-
-      // Only update state if gestures changed to prevent heavy React reconciliation
       if (
         currentGestures.left !== lastGestures.current.left ||
         currentGestures.right !== lastGestures.current.right
