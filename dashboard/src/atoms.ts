@@ -1,5 +1,5 @@
 import { atom } from "jotai";
-import { selectAtom } from "jotai/utils";
+import { atomWithStorage, selectAtom } from "jotai/utils";
 import type { HandData, Mapping } from "./types";
 
 export const currentHandDataAtom = atom<{
@@ -12,7 +12,10 @@ export const activeGesturesAtom = atom<{ left: string; right: string }>({
   right: "None",
 });
 
-export const mappingsAtom = atom<Mapping[]>([]);
+export const mappingsAtom = atomWithStorage<Mapping[]>(
+  "phantomfader:mappings",
+  []
+);
 
 export const liveValuesAtom = atom<Record<string, number>>({});
 

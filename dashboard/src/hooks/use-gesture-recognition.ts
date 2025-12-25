@@ -4,9 +4,9 @@ import {
   GestureRecognizer,
   HandLandmarker,
 } from "@mediapipe/tasks-vision";
-import { useAtom } from "jotai";
-import { useCallback, useEffect, useRef } from "react";
-import { isReadyAtom } from "@/atoms";
+import { useAtom, useAtomValue } from "jotai";
+import { useEffect, useRef } from "react";
+import { isReadyAtom, mappingsAtom } from "@/atoms";
 import type { HandData, Mapping } from "@/types";
 import { clamp, SMOOTHING } from "@/utils";
 
@@ -18,43 +18,49 @@ interface UseGestureRecognitionProps {
     left: HandData | null;
     right: HandData | null;
   }) => void;
+  setLiveValues: (
+    value:
+      | Record<string, number>
+      | ((prev: Record<string, number>) => Record<string, number>)
+  ) => void;
 }
 
 const processTrigger = (
   m: Mapping,
-  ws: React.RefObject<WebSocket | null>,
-  lastTrigger: React.RefObject<Record<string, number>>
+  ws: WebSocket | null,
+  lastTrigger: Record<string, number>
 ) => {
   const now = performance.now();
-  if ((lastTrigger.current[m.id] || 0) + 400 > now) {
+  if ((lastTrigger[m.id] || 0) + 400 > now) {
     return false;
   }
-  lastTrigger.current[m.id] = now;
-  ws.current?.send(JSON.stringify({ address: m.address, value: 1 }));
+  lastTrigger[m.id] = now;
+  ws?.send(JSON.stringify({ address: m.address, value: 1 }));
   return true;
 };
 
 const processFaderOrKnob = (
   m: Mapping,
   inputVal: number,
-  ws: React.RefObject<WebSocket | null>,
-  liveValues: React.RefObject<Record<string, number>>,
-  smoothedValues: React.RefObject<Record<string, number>>
+  ws: WebSocket | null,
+  liveValues: Record<string, number>,
+  smoothedValues: Record<string, number>
 ) => {
+  console.log("processFaderOrKnob", m.address);
   const targetVal = clamp(
     (inputVal - m.range.min) / (m.range.max - m.range.min || 0.001),
     0,
     1
   );
 
-  const prev = smoothedValues.current[m.id] ?? targetVal;
+  const prev = smoothedValues[m.id] ?? targetVal;
   const smoothVal = targetVal * SMOOTHING + prev * (1 - SMOOTHING);
 
-  smoothedValues.current[m.id] = smoothVal;
+  smoothedValues[m.id] = smoothVal;
 
   if (Math.abs(prev - smoothVal) > 0.001) {
-    liveValues.current[m.id] = smoothVal;
-    ws.current?.send(
+    liveValues[m.id] = smoothVal;
+    ws?.send(
       JSON.stringify({
         address: m.address,
         value: Number(smoothVal.toFixed(3)),
@@ -69,10 +75,10 @@ const processMapping = (
   gesture: string,
   y: number,
   rot: number,
-  ws: React.RefObject<WebSocket | null>,
-  liveValues: React.RefObject<Record<string, number>>,
-  smoothedValues: React.RefObject<Record<string, number>>,
-  lastTrigger: React.RefObject<Record<string, number>>
+  ws: WebSocket | null,
+  liveValues: Record<string, number>,
+  smoothedValues: Record<string, number>,
+  lastTrigger: Record<string, number>
 ) => {
   if (!m.enabled || m.hand !== hand || m.gesture !== gesture) {
     return;
@@ -96,10 +102,10 @@ const processHandLandmarks = (
   currentGestures: { left: string; right: string },
   currentHandData: { left: HandData | null; right: HandData | null },
   mappings: Mapping[],
-  ws: React.RefObject<WebSocket | null>,
-  liveValues: React.RefObject<Record<string, number>>,
-  smoothedValues: React.RefObject<Record<string, number>>,
-  lastTrigger: React.RefObject<Record<string, number>>
+  ws: WebSocket | null,
+  liveValues: Record<string, number>,
+  smoothedValues: Record<string, number>,
+  lastTrigger: Record<string, number>
 ) => {
   const gesture = res.gestures?.[i]?.[0]?.categoryName || "None";
   const hand = res.handedness[i][0].categoryName.toLowerCase() as
@@ -107,10 +113,9 @@ const processHandLandmarks = (
     | "right";
 
   const y = 1 - lm[9].y;
-  const rot = Math.atan2(
-    lm[17].y - lm[5].y,
-    hand === "left" ? lm[17].x - lm[5].x : lm[5].x - lm[17].x
-  );
+  const dx = lm[17].x - lm[5].x;
+  const dy = lm[17].y - lm[5].y;
+  const rot = Math.atan2(dy, hand === "left" ? dx : -dx);
 
   currentGestures[hand] = gesture;
   currentHandData[hand] = { y, rot };
@@ -135,11 +140,12 @@ export const useGestureRecognition = ({
   canvasRef,
   onGestures,
   onHandData,
+  setLiveValues,
 }: UseGestureRecognitionProps) => {
   const recognizerRef = useRef<GestureRecognizer | null>(null);
-  const requestRef = useRef<number>(0);
-  const lastGestures = useRef({ left: "", right: "" });
   const [isReady, setIsReady] = useAtom(isReadyAtom);
+  const mappings = useAtomValue(mappingsAtom);
+  console.log("mappings", mappings);
 
   useEffect(() => {
     const init = async () => {
@@ -163,24 +169,22 @@ export const useGestureRecognition = ({
     init();
     return () => {
       recognizerRef.current?.close();
-      cancelAnimationFrame(requestRef.current);
     };
   }, [setIsReady]);
 
-  const detect = useCallback(
-    (
-      mappings: Mapping[],
-      ws: React.RefObject<WebSocket | null>,
-      liveValues: React.RefObject<Record<string, number>>,
-      smoothedValues: React.RefObject<Record<string, number>>,
-      lastTrigger: React.RefObject<Record<string, number>>
-    ) => {
+  const detect = (
+    ws: WebSocket | null,
+    smoothedValues: Record<string, number>,
+    lastTrigger: Record<string, number>,
+    lastGestures: { left: string; right: string }
+  ) => {
+    const liveValues: Record<string, number> = {};
+
+    const loop = () => {
       const video = videoRef.current;
       const rec = recognizerRef.current;
       if (!(video && rec) || video.readyState !== 4) {
-        requestRef.current = requestAnimationFrame(() =>
-          detect(mappings, ws, liveValues, smoothedValues, lastTrigger)
-        );
+        requestAnimationFrame(loop);
         return;
       }
 
@@ -197,14 +201,12 @@ export const useGestureRecognition = ({
       }
 
       const currentGestures = { left: "None", right: "None" };
-      const currentHandData: { left: HandData | null; right: HandData | null } =
-        { left: null, right: null };
+      const currentHandData: {
+        left: HandData | null;
+        right: HandData | null;
+      } = { left: null, right: null };
 
-      const processLandmarks = () => {
-        if (!res.landmarks?.length) {
-          return;
-        }
-
+      if (res.landmarks?.length) {
         for (let i = 0; i < res.landmarks.length; i++) {
           processHandLandmarks(
             res.landmarks[i],
@@ -219,25 +221,24 @@ export const useGestureRecognition = ({
             lastTrigger
           );
         }
-      };
-
-      processLandmarks();
+      }
 
       if (
-        currentGestures.left !== lastGestures.current.left ||
-        currentGestures.right !== lastGestures.current.right
+        currentGestures.left !== lastGestures.left ||
+        currentGestures.right !== lastGestures.right
       ) {
-        lastGestures.current = currentGestures;
+        lastGestures.left = currentGestures.left;
+        lastGestures.right = currentGestures.right;
         onGestures(currentGestures);
       }
 
       onHandData(currentHandData);
-      requestRef.current = requestAnimationFrame(() =>
-        detect(mappings, ws, liveValues, smoothedValues, lastTrigger)
-      );
-    },
-    [videoRef, canvasRef, onGestures, onHandData]
-  );
+      setLiveValues(liveValues);
+      requestAnimationFrame(loop);
+    };
+
+    loop();
+  };
 
   return { recognizerRef, detect, isReady };
 };
