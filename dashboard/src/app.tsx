@@ -1,39 +1,26 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { useCallback, useEffect, useRef } from "react";
-import { activeGesturesAtom, currentHandDataAtom, mappingsAtom } from "./atoms";
+import { useEffect, useRef } from "react";
+import {
+  activeGesturesAtom,
+  currentHandDataAtom,
+  liveValuesAtom,
+  mappingsAtom,
+} from "./atoms";
 import { AddMappingButton } from "./components/add-mapping-button";
 import { CameraFeed } from "./components/camera-feed";
 import { Header } from "./components/header";
 import { MappingCard } from "./components/mapping-card";
 import { SensorDataDisplay } from "./components/sensor-data-display";
-import {
-  useDetectionState,
-  useLiveValues,
-  useMappingOperations,
-  useMappingsPersistence,
-  useWebSocket,
-} from "./hooks/use-app-hooks";
+import { useMappingOperations } from "./hooks/use-app-hooks";
 import { useGestureRecognition } from "./hooks/use-gesture-recognition";
-import type { Mapping } from "./types";
 
 export default function App() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const ws = useWebSocket();
 
   const setActiveGestures = useSetAtom(activeGesturesAtom);
   const setCurrentHandData = useSetAtom(currentHandDataAtom);
-
-  const mappings = useAtomValue(mappingsAtom);
-  const { setMappings, calibrate, updateMapping, deleteMapping, addMapping } =
-    useMappingOperations();
-
-  useMappingsPersistence(mappings, setMappings);
-
-  const { liveValues, smoothedValues, lastTrigger, latestHandDataRef } =
-    useDetectionState();
-
-  useLiveValues(liveValues);
+  const setLiveValues = useSetAtom(liveValuesAtom);
 
   const { detect, isReady } = useGestureRecognition({
     videoRef,
@@ -44,13 +31,15 @@ export default function App() {
           ? { left: leftGesture, right: rightGesture }
           : prev
       ),
-    onHandData: useCallback(
-      (handData) => {
-        latestHandDataRef.current = handData;
-        setCurrentHandData(handData);
-      },
-      [setCurrentHandData, latestHandDataRef]
-    ),
+    onHandData: (handData) => {
+      setCurrentHandData((prev) => {
+        if (prev.left === handData.left && prev.right === handData.right) {
+          return prev;
+        }
+        return handData;
+      });
+    },
+    setLiveValues,
   });
 
   useEffect(() => {
@@ -68,17 +57,6 @@ export default function App() {
       });
   }, [isReady]);
 
-  const startDetect = () => {
-    detect(mappings, ws, liveValues, smoothedValues, lastTrigger);
-  };
-
-  const handleCalibrate = useCallback(
-    (mapping: Mapping, type: "min" | "max") => {
-      calibrate(latestHandDataRef, mapping, type);
-    },
-    [calibrate, latestHandDataRef]
-  );
-
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
       <Header />
@@ -86,28 +64,35 @@ export default function App() {
         <div className="space-y-6">
           <CameraFeed
             canvasRef={canvasRef}
-            onDetectStart={startDetect}
+            detect={detect}
             videoRef={videoRef}
           />
           <SensorDataDisplay />
         </div>
-
-        <div className="space-y-3">
-          {mappings.map((m) => (
-            <MappingCard
-              key={m.id}
-              mapping={m}
-              onCalibrate={handleCalibrate}
-              onDelete={deleteMapping}
-              onUpdate={updateMapping}
-            />
-          ))}
-          <AddMappingButton
-            isDisabled={mappings.length >= 8}
-            onClick={addMapping}
-          />
-        </div>
+        <Mappings />
       </main>
+    </div>
+  );
+}
+
+function Mappings() {
+  const { addMapping } = useMappingOperations();
+
+  const mappings = useAtomValue(mappingsAtom);
+
+  // const handleCalibrate = (mapping: Mapping, type: "min" | "max") => {
+  //   calibrate(currentHandData, mapping, type);
+  // };
+
+  return (
+    <div className="space-y-3">
+      {mappings.map((m) => (
+        <MappingCard key={m.id} mapping={m} />
+      ))}
+      <AddMappingButton
+        isDisabled={mappings.length >= 8}
+        onClick={addMapping}
+      />
     </div>
   );
 }

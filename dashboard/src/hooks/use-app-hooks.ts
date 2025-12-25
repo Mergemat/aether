@@ -1,7 +1,7 @@
-import { useAtom, useSetAtom } from "jotai";
-import { useCallback, useEffect, useRef } from "react";
-import { liveValuesAtom, mappingsAtom } from "@/atoms";
-import type { HandData, Mapping } from "@/types";
+import { useAtom } from "jotai";
+import { useEffect, useRef } from "react";
+import { mappingsAtom } from "@/atoms";
+import type { Hand, HandData, Mapping } from "@/types";
 import { getNextAvailableAddress, uid } from "@/utils";
 
 export const useWebSocket = () => {
@@ -43,60 +43,42 @@ export const useMappingsPersistence = (
   }, [mappings]);
 };
 
-export const useLiveValues = (
-  liveValues: React.RefObject<Record<string, number>>
-) => {
-  const setLiveValues = useSetAtom(liveValuesAtom);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setLiveValues((prev) => {
-        const changed =
-          JSON.stringify(prev) !== JSON.stringify(liveValues.current);
-        return changed ? { ...liveValues.current } : prev;
-      });
-    }, 33);
-    return () => clearInterval(id);
-  }, [liveValues, setLiveValues]);
-};
-
 export const useMappingOperations = () => {
   const [mappings, setMappings] = useAtom(mappingsAtom);
 
-  const updateMapping = useCallback(
-    (id: string, updates: Partial<Mapping>) => {
-      setMappings((ms) =>
-        ms.map((m) => {
-          if (m.id !== id) {
-            return m;
-          }
+  const updateMapping = (id: string, updates: Partial<Mapping>) => {
+    setMappings((ms) =>
+      ms.map((m) => {
+        if (m.id !== id) {
+          return m;
+        }
 
-          const updated = { ...m, ...updates };
+        const updated = { ...m, ...updates };
 
-          if (updates.gesture !== undefined || updates.hand !== undefined) {
-            updated.address = getNextAvailableAddress(
-              ms,
-              updated.hand,
-              updated.gesture,
-              updated.mode
-            );
-          }
+        console.log("updates", updates);
+        if (
+          updates.gesture !== undefined ||
+          updates.hand !== undefined ||
+          updates.mode !== undefined
+        ) {
+          updated.address = getNextAvailableAddress(
+            ms,
+            updated.hand,
+            updated.gesture,
+            updated.mode
+          );
+        }
 
-          return updated;
-        })
-      );
-    },
-    [setMappings]
-  );
+        return updated;
+      })
+    );
+  };
 
-  const deleteMapping = useCallback(
-    (id: string) => {
-      setMappings((ms) => ms.filter((x) => x.id !== id));
-    },
-    [setMappings]
-  );
+  const deleteMapping = (id: string) => {
+    setMappings((ms) => ms.filter((x) => x.id !== id));
+  };
 
-  const addMapping = useCallback(() => {
+  const addMapping = () => {
     setMappings((ms) => {
       const gesture = "Open_Palm";
       const hand: Hand = "left";
@@ -116,32 +98,29 @@ export const useMappingOperations = () => {
         },
       ];
     });
-  }, [setMappings]);
+  };
 
-  const calibrate = useCallback(
-    (
-      latestHandDataRef: React.RefObject<{
-        left: HandData | null;
-        right: HandData | null;
-      }>,
-      mapping: Mapping,
-      type: "min" | "max"
-    ) => {
-      const data = latestHandDataRef.current[mapping.hand];
-      if (!data) {
-        return;
-      }
-
-      const val = mapping.mode === "knob" ? data.rot : data.y;
-
-      setMappings((ms) =>
-        ms.map((m) =>
-          m.id === mapping.id ? { ...m, range: { ...m.range, [type]: val } } : m
-        )
-      );
+  const calibrate = (
+    latestHandData: {
+      left: HandData | null;
+      right: HandData | null;
     },
-    [setMappings]
-  );
+    mapping: Mapping,
+    type: "min" | "max"
+  ) => {
+    const data = latestHandData[mapping.hand as "left" | "right"];
+    if (!data) {
+      return;
+    }
+
+    const val = mapping.mode === "knob" ? data.rot : data.y;
+
+    setMappings((ms) =>
+      ms.map((m) =>
+        m.id === mapping.id ? { ...m, range: { ...m.range, [type]: val } } : m
+      )
+    );
+  };
 
   return {
     mappings,
@@ -154,18 +133,11 @@ export const useMappingOperations = () => {
 };
 
 export const useDetectionState = () => {
-  const liveValues = useRef<Record<string, number>>({});
   const smoothedValues = useRef<Record<string, number>>({});
   const lastTrigger = useRef<Record<string, number>>({});
-  const latestHandDataRef = useRef<{
-    left: HandData | null;
-    right: HandData | null;
-  }>({ left: null, right: null });
 
   return {
-    liveValues,
     smoothedValues,
     lastTrigger,
-    latestHandDataRef,
   };
 };

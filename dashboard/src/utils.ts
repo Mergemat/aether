@@ -12,18 +12,17 @@ export const GESTURES = [
 
 export const SMOOTHING = 0.2;
 
-const CHANNEL_REGEX = /\/ch\/(\d+)/;
-
 export const uid = () => crypto.randomUUID();
 
 export const clamp = (v: number, min: number, max: number) =>
   Math.min(max, Math.max(min, v));
 
 export const getNextAvailableAddress = (
-  ms: Mapping[],
+  _ms: Mapping[],
   hand: Hand,
   gesture: string,
   mode: string
-) => {
+): string => {
+  console.log("getNextAvailableAddress", _ms, hand, gesture, mode);
   return `/${hand}/${GESTURES.indexOf(gesture)}/${mode}`;
 };
