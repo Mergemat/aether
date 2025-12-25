@@ -145,7 +145,8 @@ export const useGestureRecognition = ({
   const recognizerRef = useRef<GestureRecognizer | null>(null);
   const [isReady, setIsReady] = useAtom(isReadyAtom);
   const mappings = useAtomValue(mappingsAtom);
-  console.log("mappings", mappings);
+  const mappingsRef = useRef(mappings);
+  mappingsRef.current = mappings;
 
   useEffect(() => {
     const init = async () => {
@@ -180,15 +181,9 @@ export const useGestureRecognition = ({
   ) => {
     const liveValues: Record<string, number> = {};
 
-    const loop = () => {
-      const video = videoRef.current;
-      const rec = recognizerRef.current;
-      if (!(video && rec) || video.readyState !== 4) {
-        requestAnimationFrame(loop);
-        return;
-      }
-
-      const res = rec.recognizeForVideo(video, performance.now());
+    const drawLandmarks = (res: {
+      landmarks?: Array<{ x: number; y: number; z: number }>;
+    }) => {
       const ctx = canvasRef.current?.getContext("2d", { alpha: false });
 
       if (ctx && canvasRef.current && res.landmarks) {
@@ -199,6 +194,33 @@ export const useGestureRecognition = ({
           drawingUtils.drawLandmarks(lm);
         }
       }
+    };
+
+    const updateGestures = (currentGestures: {
+      left: string;
+      right: string;
+    }) => {
+      if (
+        currentGestures.left !== lastGestures.left ||
+        currentGestures.right !== lastGestures.right
+      ) {
+        lastGestures.left = currentGestures.left;
+        lastGestures.right = currentGestures.right;
+        onGestures(currentGestures);
+      }
+    };
+
+    const loop = () => {
+      const video = videoRef.current;
+      const rec = recognizerRef.current;
+      if (!(video && rec) || video.readyState !== 4) {
+        requestAnimationFrame(loop);
+        return;
+      }
+
+      const res = rec.recognizeForVideo(video, performance.now());
+
+      drawLandmarks(res);
 
       const currentGestures = { left: "None", right: "None" };
       const currentHandData: {
@@ -214,7 +236,7 @@ export const useGestureRecognition = ({
             res,
             currentGestures,
             currentHandData,
-            mappings,
+            mappingsRef.current,
             ws,
             liveValues,
             smoothedValues,
@@ -223,15 +245,7 @@ export const useGestureRecognition = ({
         }
       }
 
-      if (
-        currentGestures.left !== lastGestures.left ||
-        currentGestures.right !== lastGestures.right
-      ) {
-        lastGestures.left = currentGestures.left;
-        lastGestures.right = currentGestures.right;
-        onGestures(currentGestures);
-      }
-
+      updateGestures(currentGestures);
       onHandData(currentHandData);
       setLiveValues(liveValues);
       requestAnimationFrame(loop);
