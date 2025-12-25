@@ -7,31 +7,20 @@ export const currentHandDataAtom = atom<{
   right: HandData | null;
 }>({ left: null, right: null });
 
+export const activeGesturesAtom = atom<{ left: string; right: string }>({
+  left: "None",
+  right: "None",
+});
+
 export const mappingsAtom = atom<Mapping[]>([]);
 
-// Assuming liveValuesAtom is: Record<string, number>
 export const liveValuesAtom = atom<Record<string, number>>({});
 
-// Create a memoized selector for a specific mapping ID
+export const isReadyAtom = atom(false);
+
 export const selectMappingValueAtom = (id: string) =>
   selectAtom(
     liveValuesAtom,
     (values) => values[id] ?? 0,
-    (a, b) => a === b // Only update if the number actually changes
+    (a, b) => a === b
   );
-
-export const mappingsWithValuesAtom = atom((get) => {
-  const mappings = get(mappingsAtom);
-  const liveValues = get(liveValuesAtom);
-  return mappings.map((m) => ({
-    ...m,
-    value: liveValues[m.id] ?? 0,
-  }));
-});
-
-export const activeGesturesAtom = atom<{ left: string; right: string }>({
-  left: "—",
-  right: "—",
-});
-
-export const isReadyAtom = atom(false);
