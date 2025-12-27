@@ -48,7 +48,10 @@ export const useMappingsStore = create<MappingsState>()(
         set({ mappings: mappings.filter((m) => m.id !== id) });
       },
       updateMapping: (id: string, updates: Partial<Mapping>) => {
-        perfLogger.storeUpdate("mappings-store", "updateMapping", { id, updates });
+        perfLogger.storeUpdate("mappings-store", "updateMapping", {
+          id,
+          updates,
+        });
         const mappings = get().mappings;
         const mapping = mappings.find((m) => m.id === id);
         if (!mapping) {

@@ -35,7 +35,9 @@ export const useWebSocketStore = create<WebSocketState>((set) => ({
     set({ error });
   },
   setConnectedAt: (connectedAt) => {
-    perfLogger.storeUpdate("websocket-store", "setConnectedAt", { connectedAt });
+    perfLogger.storeUpdate("websocket-store", "setConnectedAt", {
+      connectedAt,
+    });
     set({ connectedAt });
   },
   incrementReconnectAttempts: () =>
