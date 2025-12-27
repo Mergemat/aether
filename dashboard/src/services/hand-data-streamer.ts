@@ -12,6 +12,7 @@ export class HandDataStreamer {
   private readonly client: WebSocketClient;
   private readonly lastSentValues = new Map<string, number>();
   private throttleTimer: ReturnType<typeof setTimeout> | null = null;
+  private pendingMessages: { address: string; value: number }[] = [];
   private readonly config: Required<HandDataStreamerConfig>;
   private isStreaming = false;
 
@@ -61,7 +62,6 @@ export class HandDataStreamer {
 
   private subscribeToHandData() {
     useHandStore.subscribe((handState) => {
-      console.log(handState.right);
       if (!this.isStreaming) {
         return;
       }
@@ -108,12 +108,17 @@ export class HandDataStreamer {
   }
 
   private sendMessages(messages: { address: string; value: number }[]) {
+    this.pendingMessages.push(...messages);
+
     if (this.throttleTimer !== null) {
       return;
     }
 
     this.throttleTimer = setTimeout(() => {
-      for (const message of messages) {
+      const messagesToSend = this.pendingMessages;
+      this.pendingMessages = [];
+
+      for (const message of messagesToSend) {
         this.client.send(message);
       }
       this.throttleTimer = null;
@@ -125,5 +130,6 @@ export class HandDataStreamer {
       clearTimeout(this.throttleTimer);
       this.throttleTimer = null;
     }
+    this.pendingMessages = [];
   }
 }
