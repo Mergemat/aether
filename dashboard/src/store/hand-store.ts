@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { HandData } from "@/types";
+import perfLogger from "@/lib/utils/logger";
 
 interface HandState {
   gesture: string;
@@ -30,6 +31,14 @@ export const useHandStore = create<RecognitionStore>((set) => ({
       const prev = state[side];
 
       const { y, rot } = data;
+
+      // perfLogger.storeUpdate("hand-store", `updateHand(${side})`, {
+      //   gesture,
+      //   y: y.toFixed(3),
+      //   rot: rot.toFixed(3),
+      //   prevGesture: prev.gesture,
+      //   willUpdate: !(prev.gesture === gesture && prev.y === y && prev.rot === rot),
+      // });
 
       if (prev.gesture === gesture && prev.y === y && prev.rot === rot) {
         return state;

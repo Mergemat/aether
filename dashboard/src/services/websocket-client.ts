@@ -1,3 +1,5 @@
+import perfLogger from "@/lib/utils/logger";
+
 interface WebSocketMessage {
   data: unknown;
 }
@@ -33,44 +35,64 @@ export class WebSocketClient {
       ...config,
     };
     this.eventHandlers = eventHandlers;
+    perfLogger.websocket("client created", { url: this.config.url });
   }
 
   connect() {
     if (this.ws !== null && this.ws.readyState === WebSocket.OPEN) {
+      perfLogger.websocket("connect skipped - already connected");
       return;
     }
 
+    perfLogger.websocket("connecting", { url: this.config.url });
     this.manualClose = false;
     this.ws = new WebSocket(this.config.url);
 
     this.ws.onopen = () => {
+      perfLogger.websocket("onopen", {
+        reconnectAttempts: this.reconnectAttempts,
+      });
       this.reconnectAttempts = 0;
       this.eventHandlers.onOpen?.();
     };
 
     this.ws.onclose = (event) => {
+      perfLogger.websocket("onclose", {
+        code: event.code,
+        reason: event.reason,
+        reconnectAttempts: this.reconnectAttempts,
+        manualClose: this.manualClose,
+      });
       const maxAttempts = this.config.maxReconnectAttempts ?? 5;
       if (!this.manualClose && this.reconnectAttempts < maxAttempts) {
+        perfLogger.websocket("scheduling reconnect", {
+          attempt: this.reconnectAttempts + 1,
+          maxAttempts,
+        });
         this.scheduleReconnect();
       }
       this.eventHandlers.onClose?.(event);
     };
 
     this.ws.onerror = (error) => {
+      perfLogger.websocket("onerror", { error });
       this.eventHandlers.onError?.(error);
     };
 
     this.ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        perfLogger.websocket("onmessage", { data });
         this.eventHandlers.onMessage?.(data);
       } catch {
+        perfLogger.websocket("onmessage", { rawData: event.data });
         this.eventHandlers.onMessage?.(event.data);
       }
     };
   }
 
   disconnect() {
+    perfLogger.websocket("disconnect called");
     this.manualClose = true;
     this.clearReconnectTimer();
     if (this.ws) {
@@ -82,6 +104,8 @@ export class WebSocketClient {
   send(data: unknown) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(data));
+    } else {
+      perfLogger.websocket("send failed - not connected", { data });
     }
   }
 
@@ -100,10 +124,16 @@ export class WebSocketClient {
   }
 
   private scheduleReconnect() {
+    perfLogger.websocket("scheduleReconnect", {
+      attempts: this.reconnectAttempts,
+    });
     this.clearReconnectTimer();
     const interval = this.config.reconnectInterval ?? 3000;
     this.reconnectTimer = setTimeout(() => {
       this.reconnectAttempts++;
+      perfLogger.websocket("reconnect attempt", {
+        attempt: this.reconnectAttempts,
+      });
       this.connect();
     }, interval);
   }

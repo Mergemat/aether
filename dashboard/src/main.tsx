@@ -1,4 +1,3 @@
-import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { scan } from "react-scan"; // must be imported before React and React DOM
 
@@ -9,11 +8,7 @@ const rootElement = document.getElementById("root");
 if (!rootElement) {
   throw new Error("Missing root element");
 }
-createRoot(rootElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+createRoot(rootElement).render(<App />);
 scan({
   enabled: true,
 });
