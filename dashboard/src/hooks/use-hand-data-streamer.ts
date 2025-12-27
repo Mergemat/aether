@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import perfLogger from "@/lib/utils/logger";
 import { WebSocketClient } from "@/services/websocket-client";
 import { useMappingsStore } from "@/store/mappings-store";
-import type { Mapping } from "@/types";
+import type { GestureHandData, Mapping } from "@/types";
 
 interface HandDataStreamerConfig {
   wsUrl: string;
@@ -10,11 +10,7 @@ interface HandDataStreamerConfig {
   onStatusChange?: (status: "connected" | "disconnected" | "error") => void;
 }
 
-interface HandData {
-  gesture: string;
-  y: number;
-  rot: number;
-}
+type HandData = GestureHandData;
 
 interface HandDataMessage {
   address: string;
