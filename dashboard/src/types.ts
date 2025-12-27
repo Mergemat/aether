@@ -5,3 +5,12 @@ export interface HandData {
   y: number;
   rot: number;
 }
+
+export interface Mapping {
+  id: string;
+  enabled: boolean;
+  gesture: string;
+  hand: Hand;
+  address: string;
+  mode: Mode;
+}
