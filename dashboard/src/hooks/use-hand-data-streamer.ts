@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import perfLogger from "@/lib/utils/logger";
 import { WebSocketClient } from "@/services/websocket-client";
+import { useMappingsStore } from "@/store/mappings-store";
 import type { Mapping } from "@/types";
 
 interface HandDataStreamerConfig {
@@ -27,15 +28,14 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
   const lastSentValuesRef = useRef<Map<string, number>>(new Map());
   const isStreamingRef = useRef(false);
 
+  const mappings = useMappingsStore((state) => state.mappings);
+
   const finalConfig = {
     valueThreshold: 0.001,
     ...config,
   };
 
-  const sendHandData = (
-    handData: { left: HandData; right: HandData },
-    mappings: Mapping[]
-  ) => {
+  const sendHandData = (handData: { left: HandData; right: HandData }) => {
     if (!clientRef.current) {
       perfLogger.event(
         "useHandDataStreamer",
