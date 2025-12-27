@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import perfLogger from "@/lib/utils/logger";
 
 export type ConnectionStatus =
   | "disconnected"
@@ -25,10 +26,28 @@ export const useWebSocketStore = create<WebSocketState>((set) => ({
   connectedAt: null,
   reconnectAttempts: 0,
 
-  setStatus: (status) => set({ status }),
-  setError: (error) => set({ error }),
-  setConnectedAt: (connectedAt) => set({ connectedAt }),
+  setStatus: (status) => {
+    perfLogger.storeUpdate("websocket-store", "setStatus", { status });
+    set({ status });
+  },
+  setError: (error) => {
+    perfLogger.storeUpdate("websocket-store", "setError", { error });
+    set({ error });
+  },
+  setConnectedAt: (connectedAt) => {
+    perfLogger.storeUpdate("websocket-store", "setConnectedAt", { connectedAt });
+    set({ connectedAt });
+  },
   incrementReconnectAttempts: () =>
-    set((state) => ({ reconnectAttempts: state.reconnectAttempts + 1 })),
-  resetReconnectAttempts: () => set({ reconnectAttempts: 0 }),
+    set((state) => {
+      const newCount = state.reconnectAttempts + 1;
+      perfLogger.storeUpdate("websocket-store", "incrementReconnectAttempts", {
+        reconnectAttempts: newCount,
+      });
+      return { reconnectAttempts: newCount };
+    }),
+  resetReconnectAttempts: () => {
+    perfLogger.storeUpdate("websocket-store", "resetReconnectAttempts");
+    set({ reconnectAttempts: 0 });
+  },
 }));

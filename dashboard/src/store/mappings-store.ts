@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import { GESTURES } from "@/lib/constants";
+import perfLogger from "@/lib/utils/logger";
 import type { Mapping } from "@/types";
 
 interface MappingsState {
@@ -26,6 +27,7 @@ export const useMappingsStore = create<MappingsState>()(
       ],
 
       addMapping: (m: Omit<Mapping, "id" | "address">) => {
+        perfLogger.storeUpdate("mappings-store", "addMapping", { m });
         const mappings = get().mappings;
 
         const mapping: Mapping = {
@@ -35,15 +37,25 @@ export const useMappingsStore = create<MappingsState>()(
         };
 
         set({ mappings: [...mappings, mapping] });
+        perfLogger.storeUpdate("mappings-store", "addMapping complete", {
+          id: mapping.id,
+          address: mapping.address,
+        });
       },
       deleteMapping: (id: string) => {
+        perfLogger.storeUpdate("mappings-store", "deleteMapping", { id });
         const mappings = get().mappings;
         set({ mappings: mappings.filter((m) => m.id !== id) });
       },
       updateMapping: (id: string, updates: Partial<Mapping>) => {
+        perfLogger.storeUpdate("mappings-store", "updateMapping", { id, updates });
         const mappings = get().mappings;
         const mapping = mappings.find((m) => m.id === id);
         if (!mapping) {
+          perfLogger.storeUpdate("mappings-store", "updateMapping failed", {
+            reason: "mapping not found",
+            id,
+          });
           return;
         }
 

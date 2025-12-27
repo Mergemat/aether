@@ -19,11 +19,14 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { GESTURES } from "@/lib/constants";
 import { clamp } from "@/lib/utils/clamp";
+import perfLogger from "@/lib/utils/logger";
 import { useHandStore } from "@/store/hand-store";
 import { useMappingsStore } from "@/store/mappings-store";
 import type { Hand, Mapping, Mode } from "@/types";
 
 export function Mappings() {
+  perfLogger.componentRender("Mappings");
+
   const { mappings, addMapping } = useMappingsStore();
 
   const onNewMapping = () => {
@@ -149,6 +152,7 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
   );
 
   const activeGesture = useHandStore((state) => state[mapping.hand].gesture);
+
   const isActive = activeGesture === mapping.gesture;
 
   return (

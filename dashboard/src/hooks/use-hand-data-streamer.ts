@@ -1,5 +1,5 @@
 import { useRef } from "react";
-
+import perfLogger from "@/lib/utils/logger";
 import { WebSocketClient } from "@/services/websocket-client";
 import type { Mapping } from "@/types";
 
@@ -21,6 +21,8 @@ interface HandDataMessage {
 }
 
 export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
+  perfLogger.hookInit("useHandDataStreamer", config);
+
   const clientRef = useRef<WebSocketClient | null>(null);
   const lastSentValuesRef = useRef<Map<string, number>>(new Map());
   const isStreamingRef = useRef(false);
@@ -35,10 +37,18 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
     mappings: Mapping[]
   ) => {
     if (!clientRef.current) {
+      perfLogger.event(
+        "useHandDataStreamer",
+        "sendHandData skipped - no client"
+      );
       return;
     }
 
     if (!clientRef.current.isConnected()) {
+      perfLogger.event(
+        "useHandDataStreamer",
+        "sendHandData skipped - not connected"
+      );
       return;
     }
 
@@ -58,22 +68,32 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
 
   const start = () => {
     if (isStreamingRef.current) {
+      perfLogger.event(
+        "useHandDataStreamer",
+        "start skipped - already streaming"
+      );
       return;
     }
 
+    perfLogger.event("useHandDataStreamer | start called", {
+      url: finalConfig.wsUrl,
+    });
     isStreamingRef.current = true;
 
     clientRef.current = new WebSocketClient(
       { url: finalConfig.wsUrl },
       {
         onOpen: () => {
+          perfLogger.websocket("connected", { url: finalConfig.wsUrl });
           lastSentValuesRef.current.clear();
           config.onStatusChange?.("connected");
         },
         onClose: () => {
+          perfLogger.websocket("disconnected", { url: finalConfig.wsUrl });
           config.onStatusChange?.("disconnected");
         },
         onError: () => {
+          perfLogger.websocket("error", { url: finalConfig.wsUrl });
           config.onStatusChange?.("error");
         },
       }
@@ -83,6 +103,7 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
   };
 
   const stop = () => {
+    perfLogger.event("useHandDataStreamer", "stop called");
     isStreamingRef.current = false;
 
     if (clientRef.current) {
