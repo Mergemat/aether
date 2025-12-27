@@ -65,12 +65,6 @@ export function Mappings() {
 function MappingRow({ mapping }: { mapping: Mapping }) {
   const updateMapping = useMappingsStore((state) => state.updateMapping);
   const deleteMapping = useMappingsStore((state) => state.deleteMapping);
-  const handData = useHandStore(
-    (state) => state[mapping.hand].gestureData[mapping.gesture]
-  );
-
-  const activeGesture = useHandStore((state) => state[mapping.hand].gesture);
-  const isActive = activeGesture === mapping.gesture;
 
   const handleChange = (name: keyof Mapping, value: any) => {
     updateMapping(mapping.id, { [name]: value });
@@ -144,53 +138,61 @@ function MappingRow({ mapping }: { mapping: Mapping }) {
           <IconTrash className="h-4 w-4" />
         </Button>
       </div>
+      <MappingMonitor mapping={mapping} />
+    </div>
+  );
+}
 
-      <div className="flex items-center gap-3 bg-muted/40 px-3 py-2 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
-        <div className="flex items-center gap-1.5">
-          <IconActivity
-            className={`h-3 w-3 ${isActive ? "text-primary" : ""}`}
-          />
-          Monitor
-        </div>
+function MappingMonitor({ mapping }: { mapping: Mapping }) {
+  const handData = useHandStore(
+    (state) => state[mapping.hand].gestureData[mapping.gesture]
+  );
 
-        <div className="flex h-4 flex-1 items-center">
-          <div className="flex w-full items-center gap-4">
-            {mapping.mode === "trigger" && (
-              <span className="flex animate-pulse items-center gap-1.5 text-primary">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Trigger Sent
-              </span>
-            )}
+  const activeGesture = useHandStore((state) => state[mapping.hand].gesture);
+  const isActive = activeGesture === mapping.gesture;
 
-            {mapping.mode === "fader" && (
-              <div className="flex flex-1 items-center gap-2">
-                <Progress className="h-1.5" value={handData?.y * 100} />
-                <span className="w-8 tabular-nums">
-                  {handData?.y.toFixed(2)}
-                </span>
+  return (
+    <div className="flex items-center gap-3 bg-muted/40 px-3 py-2 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
+      <div className="flex items-center gap-1.5">
+        <IconActivity className={`h-3 w-3 ${isActive ? "text-primary" : ""}`} />
+        Monitor
+      </div>
+
+      <div className="flex h-4 flex-1 items-center">
+        <div className="flex w-full items-center gap-4">
+          {mapping.mode === "trigger" && (
+            <span className="flex animate-pulse items-center gap-1.5 text-primary">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              Trigger Sent
+            </span>
+          )}
+
+          {mapping.mode === "fader" && (
+            <div className="flex flex-1 items-center gap-2">
+              <Progress className="h-1.5" value={handData?.y * 100} />
+              <span className="w-8 tabular-nums">{handData?.y.toFixed(2)}</span>
+            </div>
+          )}
+
+          {mapping.mode === "knob" && (
+            <div className="flex items-center gap-3">
+              <div className="relative h-4 w-4 rounded-full border-2 border-primary/30">
+                <div
+                  className="absolute top-0 left-1/2 h-1/2 w-0.5 origin-bottom bg-primary"
+                  style={{
+                    transform: `translateX(-50%) rotate(${clamp(
+                      handData?.rot * 330 - 180,
+                      -150,
+                      180
+                    )}deg)`,
+                  }}
+                />
               </div>
-            )}
-
-            {mapping.mode === "knob" && (
-              <div className="flex items-center gap-3">
-                <div className="relative h-4 w-4 rounded-full border-2 border-primary/30">
-                  <div
-                    className="absolute top-0 left-1/2 h-1/2 w-0.5 origin-bottom bg-primary"
-                    style={{
-                      transform: `translateX(-50%) rotate(${clamp(
-                        handData?.rot * 330 - 180,
-                        -150,
-                        180
-                      )}deg)`,
-                    }}
-                  />
-                </div>
-                <span className="tabular-nums">{handData?.rot.toFixed(2)}</span>
-              </div>
-            )}
-          </div>
-          )
+              <span className="tabular-nums">{handData?.rot.toFixed(2)}</span>
+            </div>
+          )}
         </div>
+        )
       </div>
     </div>
   );

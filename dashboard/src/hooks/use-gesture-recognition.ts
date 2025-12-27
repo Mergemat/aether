@@ -10,14 +10,14 @@ import { useRecognizerStore } from "@/store/recognizer";
 
 interface UseGestureRecognitionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  drawLandmarks?: boolean;
 }
 
 export const useGestureRecognition = ({
   videoRef,
+  drawLandmarks = true,
 }: UseGestureRecognitionProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const lastGesturesRef = useRef({ left: "None", right: "None" });
 
   const initRecognizer = useRecognizerStore((state) => state.init);
   const destroyRecognizer = useRecognizerStore((state) => state.destroy);
@@ -30,7 +30,7 @@ export const useGestureRecognition = ({
     return () => destroyRecognizer();
   }, [initRecognizer, destroyRecognizer]);
 
-  const drawLandmarks = (results: GestureRecognizerResult) => {
+  const drawLandmarksOnCanvas = (results: GestureRecognizerResult) => {
     const canvas = canvasRef.current;
 
     const ctx = canvas?.getContext("2d", { alpha: true });
@@ -64,8 +64,6 @@ export const useGestureRecognition = ({
 
       const results = recognizer.recognizeForVideo(video, performance.now());
 
-      const currentGestures = { left: "None", right: "None" };
-
       if (results.landmarks?.length) {
         results.landmarks.forEach((landmarks, i) => {
           const gesture = results.gestures?.[i]?.[0]?.categoryName || "None";
@@ -76,20 +74,16 @@ export const useGestureRecognition = ({
             return;
           }
 
-          console.clear();
-          console.log(gesture);
           const rawData = processHandLandmarks(landmarks, handedness);
           updateHand(side, gesture, rawData);
         });
       }
-      if (
-        currentGestures.left !== lastGesturesRef.current.left ||
-        currentGestures.right !== lastGesturesRef.current.right
-      ) {
-        lastGesturesRef.current = currentGestures;
-      }
 
-      drawLandmarks(results);
+      if (drawLandmarks) {
+        setTimeout(() => {
+          drawLandmarksOnCanvas(results);
+        }, 0);
+      }
 
       requestAnimationFrame(loop);
     };

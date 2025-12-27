@@ -10,13 +10,14 @@ export default function App() {
 
   const { canvasRef, startDetection } = useGestureRecognition({
     videoRef,
+    // drawLandmarks: false,
   });
 
   const streamerRef = useRef<HandDataStreamer | null>(null);
   useEffect(() => {
     streamerRef.current = new HandDataStreamer({
       wsUrl: "ws://127.0.0.1:8888",
-      throttleMs: 0, // optional, default 33ms
+      throttleMs: 0,
     });
 
     streamerRef.current.start();
@@ -38,12 +39,6 @@ export default function App() {
           height={720}
           muted
           onLoadedData={startDetection}
-          onLoadedMetadata={() => {
-            if (videoRef.current && canvasRef.current) {
-              canvasRef.current.width = videoRef.current.videoWidth;
-              canvasRef.current.height = videoRef.current.videoHeight;
-            }
-          }}
           playsInline
           ref={videoRef}
           width={1280}
