@@ -1,5 +1,7 @@
+import { useEffect, useRef } from "react";
 import { useGestureRecognition } from "./hooks/use-gesture-recognition";
 import { useWebcam } from "./hooks/use-webcam";
+import { HandDataStreamer } from "./services/hand-data-streamer";
 import { useHandStore } from "./store/hand-store";
 
 export default function App() {
@@ -8,6 +10,19 @@ export default function App() {
   const { canvasRef, startDetection } = useGestureRecognition({
     videoRef,
   });
+
+  const streamerRef = useRef<HandDataStreamer | null>(null);
+  useEffect(() => {
+    streamerRef.current = new HandDataStreamer({
+      wsUrl: "ws://127.0.0.1:8888",
+      throttleMs: 33, // optional, default 33ms
+    });
+
+    streamerRef.current.start();
+    return () => {
+      streamerRef.current?.stop();
+    };
+  }, []);
 
   if (error) {
     return <div>Camera access denied</div>;
