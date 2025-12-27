@@ -6,16 +6,11 @@ import { useGestureRecognition } from "./hooks/use-gesture-recognition";
 import { useHandDataStreamer } from "./hooks/use-hand-data-streamer";
 import { useWebcam } from "./hooks/use-webcam";
 import perfLogger from "./lib/utils/logger";
-import { useMappingsStore } from "./store/mappings-store";
 
 export default function App() {
   perfLogger.componentRender("App");
 
   const { videoRef, error } = useWebcam();
-
-  const mappings = useMappingsStore((state) => state.mappings);
-
-  perfLogger.storeSubscribe("mappings-store", "mappings");
 
   const { start: startStreamer, sendHandData } = useHandDataStreamer({
     wsUrl: "ws://127.0.0.1:8888",
@@ -36,7 +31,7 @@ export default function App() {
     videoRef,
     // drawLandmarks: false,
     onHandData: (handData) => {
-      sendHandData(handData, mappings);
+      sendHandData(handData);
     },
   });
 

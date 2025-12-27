@@ -12,19 +12,15 @@ export const useWebcam = () => {
     const init = async () => {
       try {
         perfLogger.event("useWebcam", "requesting camera access");
-        const startTime = performance.now();
         streamRef.current = await navigator.mediaDevices.getUserMedia({
           video: { width: 1280, height: 720 },
         });
-        const endTime = performance.now();
-        perfLogger.event("useWebcam", "camera access granted", {
-          duration: `${(endTime - startTime).toFixed(2)}ms`,
-        });
+        perfLogger.event("useWebcam", "camera access granted");
         if (videoRef.current) {
           videoRef.current.srcObject = streamRef.current;
         }
       } catch (err) {
-        perfLogger.event("useWebcam", "camera access denied", { error: err });
+        perfLogger.event("useWebcam", "camera access denied");
         setError(err as Error);
       }
     };

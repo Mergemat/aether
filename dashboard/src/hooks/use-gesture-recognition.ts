@@ -78,9 +78,10 @@ export const useGestureRecognition = ({
         setIsLoading(false);
         perfLogger.event("useGestureRecognition", "lazy init complete");
       } catch (err) {
-        perfLogger.event("useGestureRecognition", "lazy init failed", {
-          error: err,
-        });
+        perfLogger.event(
+          "useGestureRecognition",
+          `lazy init failed ${err instanceof Error ? err.message : ""}`
+        );
         setError(
           err instanceof Error ? err.message : "Failed to initialize recognizer"
         );
