@@ -61,6 +61,7 @@ export class HandDataStreamer {
 
   private subscribeToHandData() {
     useHandStore.subscribe((handState) => {
+      console.log(handState.right);
       if (!this.isStreaming) {
         return;
       }
@@ -94,7 +95,6 @@ export class HandDataStreamer {
       }
 
       const value = mapping.mode === "fader" ? handData.y : handData.rot;
-
       const lastValue = this.lastSentValues.get(mapping.address);
       if (lastValue !== undefined && Math.abs(value - lastValue) < 0.01) {
         continue;

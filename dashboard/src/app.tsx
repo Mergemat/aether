@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Mappings } from "./components/mappings";
 import { useGestureRecognition } from "./hooks/use-gesture-recognition";
 import { useWebcam } from "./hooks/use-webcam";
 import { HandDataStreamer } from "./services/hand-data-streamer";
@@ -15,7 +16,7 @@ export default function App() {
   useEffect(() => {
     streamerRef.current = new HandDataStreamer({
       wsUrl: "ws://127.0.0.1:8888",
-      throttleMs: 33, // optional, default 33ms
+      throttleMs: 0, // optional, default 33ms
     });
 
     streamerRef.current.start();
@@ -29,8 +30,8 @@ export default function App() {
   }
 
   return (
-    <>
-      <div className="relative aspect-video max-w-2xl bg-black">
+    <div className="flex flex-col gap-4">
+      <div className="relative aspect-video w-full bg-black">
         <video
           autoPlay
           className="absolute inset-0 h-full w-full -scale-x-100 object-cover"
@@ -54,9 +55,8 @@ export default function App() {
           width={1280}
         />
       </div>
-      <HandGesturePanel hand="left" />
-      <HandGesturePanel hand="right" />
-    </>
+      <Mappings />
+    </div>
   );
 }
 
@@ -78,7 +78,7 @@ export const HandGesturePanel = ({ hand }: Props) => {
       {Object.entries(gestures.gestureData).map(([gesture, data]) => (
         <div key={gesture}>
           <strong>{gesture}</strong>
-          <span> y: {data.y.toFixed(2)}</span>
+          <span> y: {data.y}</span>
           <span> rot: {data.rot.toFixed(2)}</span>
         </div>
       ))}

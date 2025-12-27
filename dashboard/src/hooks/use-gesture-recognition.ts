@@ -64,8 +64,6 @@ export const useGestureRecognition = ({
 
       const results = recognizer.recognizeForVideo(video, performance.now());
 
-      drawLandmarks(results);
-
       const currentGestures = { left: "None", right: "None" };
 
       if (results.landmarks?.length) {
@@ -74,6 +72,12 @@ export const useGestureRecognition = ({
           const handedness = results.handedness[i][0].categoryName;
           const side = handedness.toLowerCase() as "left" | "right";
 
+          if (gesture === "None") {
+            return;
+          }
+
+          console.clear();
+          console.log(gesture);
           const rawData = processHandLandmarks(landmarks, handedness);
           updateHand(side, gesture, rawData);
         });
@@ -84,6 +88,8 @@ export const useGestureRecognition = ({
       ) {
         lastGesturesRef.current = currentGestures;
       }
+
+      drawLandmarks(results);
 
       requestAnimationFrame(loop);
     };

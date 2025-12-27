@@ -31,8 +31,8 @@ export const useHandStore = create<RecognitionStore>((set) => ({
       const prev = state[side];
 
       const processed = {
-        y: Math.round(clamp(data.y, 0, 1) * 100) / 100,
-        rot: Math.round(clamp(data.rot, 0, 1) * 100) / 100,
+        y: Math.round(clamp(data.y, 0, 1) * 1000) / 1000,
+        rot: Math.round(clamp(data.rot, 0, 1) * 1000) / 1000,
       };
 
       if (
