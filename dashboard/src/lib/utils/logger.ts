@@ -1,6 +1,10 @@
 const LOG_PREFIX = "[PERF]";
 
 type LogLevel = "log" | "warn" | "error" | "info";
+type LogData = string | number | boolean | object | null | undefined;
+
+// Maximum entries to keep before auto-cleanup
+const MAX_ENTRIES = 100;
 
 const perfLogger = {
   enabled: true,
@@ -15,10 +19,10 @@ const perfLogger = {
     return true;
   },
 
-  formatMessage(...args: any[]): string {
+  formatMessage(...args: LogData[]): string {
     return args
       .map((arg) => {
-        if (typeof arg === "object") {
+        if (typeof arg === "object" && arg !== null) {
           return JSON.stringify(arg, null, 2);
         }
         return String(arg);
@@ -26,7 +30,7 @@ const perfLogger = {
       .join(" ");
   },
 
-  log(level: LogLevel, ...args: any[]) {
+  log(level: LogLevel, ...args: LogData[]) {
     if (!this.shouldLog(level)) {
       return;
     }
@@ -49,7 +53,21 @@ const perfLogger = {
     }
   },
 
-  componentRender(componentName: string, props?: any) {
+  // Auto-cleanup when maps get too large to prevent memory accumulation
+  autoCleanup() {
+    if (this.renderCounts.size > MAX_ENTRIES) {
+      const entries = Array.from(this.renderCounts.entries());
+      const toKeep = entries.slice(-MAX_ENTRIES / 2);
+      this.renderCounts = new Map(toKeep);
+    }
+    if (this.timestamps.size > MAX_ENTRIES) {
+      const entries = Array.from(this.timestamps.entries());
+      const toKeep = entries.slice(-MAX_ENTRIES / 2);
+      this.timestamps = new Map(toKeep);
+    }
+  },
+
+  componentRender(componentName: string, props?: LogData) {
     const count = (this.renderCounts.get(componentName) || 0) + 1;
     this.renderCounts.set(componentName, count);
 
@@ -70,9 +88,12 @@ const perfLogger = {
       props ? "props:" : "",
       props
     );
+
+    // Periodically cleanup to prevent memory growth
+    this.autoCleanup();
   },
 
-  hookInit(hookName: string, config?: any) {
+  hookInit(hookName: string, config?: LogData) {
     this.log("log", `HOOK INIT ${hookName}`, config ? "config:" : "", config);
   },
 
@@ -80,7 +101,7 @@ const perfLogger = {
     this.log("log", `HOOK CLEANUP ${hookName}`);
   },
 
-  storeUpdate(storeName: string, action: string, data?: any) {
+  storeUpdate(storeName: string, action: string, data?: LogData) {
     this.log(
       "log",
       `STORE UPDATE ${storeName} ${action}`,
@@ -93,7 +114,7 @@ const perfLogger = {
     this.log("log", `STORE SUBSCRIBE ${storeName} selector: ${selector}`);
   },
 
-  effect(componentName: string, effectId: number, deps?: any[]) {
+  effect(componentName: string, effectId: number, deps?: LogData[]) {
     this.log(
       "log",
       `EFFECT RUN ${componentName} effect#${effectId}`,
@@ -105,11 +126,11 @@ const perfLogger = {
     this.log("log", `EFFECT CLEANUP ${componentName} effect#${effectId}`);
   },
 
-  event(eventName: string, data?: any) {
+  event(eventName: string, data?: LogData) {
     this.log("info", `EVENT ${eventName}`, data ? "data:" : "", data);
   },
 
-  websocket(event: string, data?: any) {
+  websocket(event: string, data?: LogData) {
     this.log("info", `WEBSOCKET ${event}`, data ? "data:" : "", data);
   },
 

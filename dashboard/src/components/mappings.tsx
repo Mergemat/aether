@@ -69,7 +69,7 @@ function MappingRow({ mapping }: { mapping: Mapping }) {
   const updateMapping = useMappingsStore((state) => state.updateMapping);
   const deleteMapping = useMappingsStore((state) => state.deleteMapping);
 
-  const handleChange = (name: keyof Mapping, value: any) => {
+  const handleChange = (name: keyof Mapping, value: string | boolean) => {
     updateMapping(mapping.id, { [name]: value });
   };
 
@@ -150,10 +150,10 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
   const handData = useHandStore(
     (state) => state[mapping.hand].gestureData[mapping.gesture]
   );
-
   const activeGesture = useHandStore((state) => state[mapping.hand].gesture);
 
   const isActive = activeGesture === mapping.gesture;
+  const knobRotation = clamp((handData?.rot ?? 0) * 330 - 180, -150, 180);
 
   return (
     <div className="flex items-center gap-3 bg-muted/40 px-3 py-2 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -173,8 +173,10 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
 
           {mapping.mode === "fader" && (
             <div className="flex flex-1 items-center gap-2">
-              <Progress className="h-1.5" value={handData?.y * 100} />
-              <span className="w-8 tabular-nums">{handData?.y.toFixed(2)}</span>
+              <Progress className="h-1.5" value={(handData?.y ?? 0) * 100} />
+              <span className="w-8 tabular-nums">
+                {(handData?.y ?? 0).toFixed(2)}
+              </span>
             </div>
           )}
 
@@ -184,15 +186,13 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
                 <div
                   className="absolute top-0 left-1/2 h-1/2 w-0.5 origin-bottom bg-primary"
                   style={{
-                    transform: `translateX(-50%) rotate(${clamp(
-                      handData?.rot * 330 - 180,
-                      -150,
-                      180
-                    )}deg)`,
+                    transform: `translateX(-50%) rotate(${knobRotation}deg)`,
                   }}
                 />
               </div>
-              <span className="tabular-nums">{handData?.rot.toFixed(2)}</span>
+              <span className="tabular-nums">
+                {(handData?.rot ?? 0).toFixed(2)}
+              </span>
             </div>
           )}
         </div>
