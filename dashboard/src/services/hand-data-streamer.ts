@@ -6,6 +6,7 @@ import { useWebSocketStore } from "@/store/websocket-store";
 interface HandDataStreamerConfig {
   wsUrl: string;
   throttleMs?: number;
+  valueThreshold?: number;
 }
 
 export class HandDataStreamer {
@@ -19,6 +20,7 @@ export class HandDataStreamer {
   constructor(config: HandDataStreamerConfig) {
     this.config = {
       throttleMs: 33,
+      valueThreshold: 0.001,
       ...config,
     };
 
@@ -96,7 +98,10 @@ export class HandDataStreamer {
 
       const value = mapping.mode === "fader" ? handData.y : handData.rot;
       const lastValue = this.lastSentValues.get(mapping.address);
-      if (lastValue !== undefined && Math.abs(value - lastValue) < 0.01) {
+      if (
+        lastValue !== undefined &&
+        Math.abs(value - lastValue) < this.config.valueThreshold
+      ) {
         continue;
       }
 
@@ -108,6 +113,13 @@ export class HandDataStreamer {
   }
 
   private sendMessages(messages: { address: string; value: number }[]) {
+    if (this.config.throttleMs === 0) {
+      for (const message of messages) {
+        this.client.send(message);
+      }
+      return;
+    }
+
     this.pendingMessages.push(...messages);
 
     if (this.throttleTimer !== null) {
