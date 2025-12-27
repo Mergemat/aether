@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { clamp } from "@/lib/utils/clamp";
 import type { HandData } from "@/types";
 
 interface HandState {
@@ -30,16 +29,9 @@ export const useHandStore = create<RecognitionStore>((set) => ({
     set((state) => {
       const prev = state[side];
 
-      const processed = {
-        y: Math.round(clamp(data.y, 0, 1) * 1000) / 1000,
-        rot: Math.round(clamp(data.rot, 0, 1) * 1000) / 1000,
-      };
+      const { y, rot } = data;
 
-      if (
-        prev.gesture === gesture &&
-        prev.y === processed.y &&
-        prev.rot === processed.rot
-      ) {
+      if (prev.gesture === gesture && prev.y === y && prev.rot === rot) {
         return state;
       }
 
@@ -47,10 +39,10 @@ export const useHandStore = create<RecognitionStore>((set) => ({
         [side]: {
           ...prev,
           gesture,
-          ...processed,
+          ...data,
           gestureData: {
             ...prev.gestureData,
-            [gesture]: processed,
+            [gesture]: data,
           },
         },
       };
