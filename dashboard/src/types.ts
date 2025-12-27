@@ -6,6 +6,17 @@ export interface HandData {
   rot: number;
 }
 
+export interface GestureHandData {
+  gesture: string;
+  y: number;
+  rot: number;
+}
+
+export interface BothHandsData {
+  left: GestureHandData;
+  right: GestureHandData;
+}
+
 export interface Mapping {
   id: string;
   enabled: boolean;
