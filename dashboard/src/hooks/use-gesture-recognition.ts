@@ -107,7 +107,7 @@ export const useGestureRecognition = ({
           continue;
         }
 
-        const rawData = processHandLandmarks(landmarks, handedness);
+        const rawData = processHandLandmarks(landmarks, handedness, gesture);
         updateHand(side, gesture, rawData);
 
         handData[side] = {
