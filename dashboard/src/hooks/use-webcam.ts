@@ -1,6 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import perfLogger from "@/lib/utils/logger";
 
+function stopAllTracks(stream: MediaStream | null): void {
+  if (!stream) {
+    return;
+  }
+  for (const track of stream.getTracks()) {
+    track.stop();
+  }
+}
+
+function clearVideoSource(video: HTMLVideoElement | null): void {
+  if (video) {
+    video.srcObject = null;
+  }
+}
+
 export const useWebcam = () => {
   const streamRef = useRef<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -9,33 +24,57 @@ export const useWebcam = () => {
   perfLogger.hookInit("useWebcam");
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        perfLogger.event("useWebcam", "requesting camera access");
-        streamRef.current = await navigator.mediaDevices.getUserMedia({
-          video: { width: 1280, height: 720 },
-        });
-        perfLogger.event("useWebcam", "camera access granted");
-        if (videoRef.current) {
-          videoRef.current.srcObject = streamRef.current;
-        }
-      } catch (err) {
-        perfLogger.event("useWebcam", "camera access denied");
-        setError(err as Error);
+    let mounted = true;
+
+    const handleSuccess = (stream: MediaStream) => {
+      streamRef.current = stream;
+      perfLogger.event("useWebcam", "camera access granted");
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
     };
 
-    if (videoRef.current) {
+    const handleAbort = (stream: MediaStream) => {
+      perfLogger.event("useWebcam", "unmounted during init - stopping tracks");
+      stopAllTracks(stream);
+    };
+
+    const init = async () => {
+      perfLogger.event("useWebcam", "requesting camera access");
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 1280, height: 720 },
+      });
+
+      if (!mounted) {
+        handleAbort(stream);
+        return;
+      }
+
+      handleSuccess(stream);
+    };
+
+    // Attach existing stream if we have one (e.g., after strict mode double-mount)
+    if (videoRef.current && streamRef.current) {
       videoRef.current.srcObject = streamRef.current;
     }
+
     if (!streamRef.current) {
-      init();
+      init().catch((err) => {
+        perfLogger.event("useWebcam", "camera access denied");
+        if (mounted) {
+          setError(err as Error);
+        }
+      });
     }
+
     return () => {
+      mounted = false;
       perfLogger.hookCleanup("useWebcam");
-      for (const t of streamRef.current?.getTracks() || []) {
-        t.stop();
-      }
+
+      stopAllTracks(streamRef.current);
+      clearVideoSource(videoRef.current);
+      streamRef.current = null;
     };
   }, []);
 

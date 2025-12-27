@@ -24,6 +24,7 @@ export class WebSocketClient {
   private reconnectAttempts = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private manualClose = false;
+  private isDestroyed = false;
 
   constructor(
     config: WebSocketConfig,
@@ -39,6 +40,11 @@ export class WebSocketClient {
   }
 
   connect() {
+    if (this.isDestroyed) {
+      perfLogger.websocket("connect skipped - client destroyed");
+      return;
+    }
+
     if (this.ws !== null && this.ws.readyState === WebSocket.OPEN) {
       perfLogger.websocket("connect skipped - already connected");
       return;
@@ -48,7 +54,18 @@ export class WebSocketClient {
     this.manualClose = false;
     this.ws = new WebSocket(this.config.url);
 
+    this.setupEventHandlers();
+  }
+
+  private setupEventHandlers() {
+    if (!this.ws) {
+      return;
+    }
+
     this.ws.onopen = () => {
+      if (this.isDestroyed) {
+        return;
+      }
       perfLogger.websocket("onopen", {
         reconnectAttempts: this.reconnectAttempts,
       });
@@ -57,51 +74,95 @@ export class WebSocketClient {
     };
 
     this.ws.onclose = (event) => {
-      perfLogger.websocket("onclose", {
-        code: event.code,
-        reason: event.reason,
-        reconnectAttempts: this.reconnectAttempts,
-        manualClose: this.manualClose,
-      });
-      const maxAttempts = this.config.maxReconnectAttempts ?? 5;
-      if (!this.manualClose && this.reconnectAttempts < maxAttempts) {
-        perfLogger.websocket("scheduling reconnect", {
-          attempt: this.reconnectAttempts + 1,
-          maxAttempts,
-        });
-        this.scheduleReconnect();
+      if (this.isDestroyed) {
+        return;
       }
-      this.eventHandlers.onClose?.(event);
+      this.handleClose(event);
     };
 
     this.ws.onerror = (error) => {
+      if (this.isDestroyed) {
+        return;
+      }
       perfLogger.websocket("onerror", { error });
       this.eventHandlers.onError?.(error);
     };
 
     this.ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        perfLogger.websocket("onmessage", { data });
-        this.eventHandlers.onMessage?.(data);
-      } catch {
-        perfLogger.websocket("onmessage", { rawData: event.data });
-        this.eventHandlers.onMessage?.(event.data);
+      if (this.isDestroyed) {
+        return;
       }
+      this.handleMessage(event);
     };
+  }
+
+  private handleClose(event: CloseEvent) {
+    perfLogger.websocket("onclose", {
+      code: event.code,
+      reason: event.reason,
+      reconnectAttempts: this.reconnectAttempts,
+      manualClose: this.manualClose,
+    });
+
+    const maxAttempts = this.config.maxReconnectAttempts ?? 5;
+    const canReconnect = this.reconnectAttempts < maxAttempts;
+    const isManualClose = this.manualClose || this.isDestroyed;
+
+    if (!isManualClose && canReconnect) {
+      perfLogger.websocket("scheduling reconnect", {
+        attempt: this.reconnectAttempts + 1,
+        maxAttempts,
+      });
+      this.scheduleReconnect();
+    }
+
+    this.eventHandlers.onClose?.(event);
+  }
+
+  private handleMessage(event: MessageEvent) {
+    try {
+      const data = JSON.parse(event.data);
+      perfLogger.websocket("onmessage", { data });
+      this.eventHandlers.onMessage?.(data);
+    } catch {
+      perfLogger.websocket("onmessage", { rawData: event.data });
+      this.eventHandlers.onMessage?.(event.data);
+    }
   }
 
   disconnect() {
     perfLogger.websocket("disconnect called");
     this.manualClose = true;
     this.clearReconnectTimer();
+
     if (this.ws) {
+      // Remove event handlers to prevent callbacks after disconnect
+      this.ws.onopen = null;
+      this.ws.onclose = null;
+      this.ws.onerror = null;
+      this.ws.onmessage = null;
+
       this.ws.close();
       this.ws = null;
     }
   }
 
+  /**
+   * Completely destroy the client. After calling this, the client cannot be reused.
+   * This ensures all timers are cleared and no reconnection attempts will be made.
+   */
+  destroy() {
+    perfLogger.websocket("destroy called");
+    this.isDestroyed = true;
+    this.disconnect();
+  }
+
   send(data: unknown) {
+    if (this.isDestroyed) {
+      perfLogger.websocket("send failed - client destroyed", { data });
+      return;
+    }
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(data));
     } else {
@@ -117,19 +178,27 @@ export class WebSocketClient {
   }
 
   isConnected(): boolean {
-    if (this.ws === null) {
+    if (this.isDestroyed || this.ws === null) {
       return false;
     }
     return this.ws.readyState === WebSocket.OPEN;
   }
 
   private scheduleReconnect() {
+    if (this.isDestroyed) {
+      return;
+    }
+
     perfLogger.websocket("scheduleReconnect", {
       attempts: this.reconnectAttempts,
     });
     this.clearReconnectTimer();
     const interval = this.config.reconnectInterval ?? 3000;
+
     this.reconnectTimer = setTimeout(() => {
+      if (this.isDestroyed) {
+        return;
+      }
       this.reconnectAttempts++;
       perfLogger.websocket("reconnect attempt", {
         attempt: this.reconnectAttempts,

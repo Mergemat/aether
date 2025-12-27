@@ -12,28 +12,46 @@ export default function App() {
 
   const { videoRef, error } = useWebcam();
 
-  const { start: startStreamer, sendHandData } = useHandDataStreamer({
+  const {
+    start: startStreamer,
+    stop: stopStreamer,
+    sendHandData,
+  } = useHandDataStreamer({
     wsUrl: "ws://127.0.0.1:8888",
   });
-
-  useEffect(() => {
-    perfLogger.effect("App", 1, ["startStreamer"]);
-    startStreamer();
-  }, [startStreamer]);
 
   const {
     canvasRef,
     startDetection,
+    stopDetection,
     isLoading,
     loadingProgress,
     error: recognizerError,
   } = useGestureRecognition({
     videoRef,
-    // drawLandmarks: false,
     onHandData: (handData) => {
       sendHandData(handData);
     },
   });
+
+  // Start streamer and handle cleanup
+  useEffect(() => {
+    perfLogger.effect("App", 1, ["startStreamer"]);
+    startStreamer();
+
+    return () => {
+      perfLogger.effectCleanup("App", 1);
+      stopStreamer();
+    };
+  }, [startStreamer, stopStreamer]);
+
+  // Cleanup detection on unmount
+  useEffect(() => {
+    return () => {
+      perfLogger.effectCleanup("App", 2);
+      stopDetection();
+    };
+  }, [stopDetection]);
 
   if (error) {
     return (
@@ -66,7 +84,7 @@ export default function App() {
       <div className="relative aspect-video w-full bg-black">
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/80">
-            <Spinner size="lg" />
+            <Spinner className="size-8" />
             <p className="text-muted-foreground text-sm">{loadingProgress}</p>
           </div>
         )}
