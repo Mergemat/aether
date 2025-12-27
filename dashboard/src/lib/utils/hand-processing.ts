@@ -1,4 +1,5 @@
 import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
+import { clamp } from "./clamp";
 
 export const processHandLandmarks = (
   landmarks: NormalizedLandmark[],
@@ -27,8 +28,11 @@ export const processHandLandmarks = (
 
   const maxAngle = Math.PI / 4;
 
+  const normY = Math.max(0, Math.min(1, scaledY));
+  const normRot = Math.max(0, Math.min(1, (rotRaw / maxAngle + 1) / 2));
+
   return {
-    y: Math.max(0, Math.min(1, scaledY)),
-    rot: Math.max(0, Math.min(1, (rotRaw / maxAngle + 1) / 2)),
+    y: Math.round(clamp(normY, 0, 1) * 1000) / 1000,
+    rot: Math.round(clamp(normRot, 0, 1) * 1000) / 1000,
   };
 };
