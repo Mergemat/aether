@@ -1,13 +1,14 @@
 import {
   DrawingUtils,
+  FilesetResolver,
+  GestureRecognizer,
   type GestureRecognizerResult,
   HandLandmarker,
 } from "@mediapipe/tasks-vision";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { processHandLandmarks } from "@/lib/utils/hand-processing";
 import perfLogger from "@/lib/utils/logger";
 import { useHandStore } from "@/store/hand-store";
-import { useRecognizerStore } from "@/store/recognizer";
 
 interface HandData {
   gesture: string;
@@ -28,10 +29,13 @@ export const useGestureRecognition = ({
 }: UseGestureRecognitionProps) => {
   perfLogger.hookInit("useGestureRecognition", { drawLandmarks });
 
-  const initRecognizer = useRecognizerStore((state) => state.init);
-  const destroyRecognizer = useRecognizerStore((state) => state.destroy);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] =
+    useState<string>("Initializing...");
+  const [error, setError] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const recognizerRef = useRef<GestureRecognizer | null>(null);
 
   const updateHand = useHandStore((state) => state.updateHand);
 
@@ -39,29 +43,61 @@ export const useGestureRecognition = ({
   const frameCountRef = useRef(0);
 
   useEffect(() => {
-    perfLogger.effect("useGestureRecognition", 1, [
-      "initRecognizer",
-      "destroyRecognizer",
-    ]);
-    initRecognizer();
-    perfLogger.event("useGestureRecognition", "initRecognizer called");
-    return () => {
-      perfLogger.effectCleanup("useGestureRecognition", 1);
-      perfLogger.event("useGestureRecognition", "destroyRecognizer called");
-      destroyRecognizer();
-    };
-  }, [initRecognizer, destroyRecognizer]);
+    let mounted = true;
 
-  useEffect(() => {
-    perfLogger.effect("useGestureRecognition", 2, ["destroyRecognizer"]);
-    return () => {
-      perfLogger.effectCleanup("useGestureRecognition", 2);
-      perfLogger.event("useGestureRecognition", "cleanup");
-      destroyRecognizer();
-      drawingUtilsRef.current = null;
-      canvasRef.current = null;
+    const initRecognizer = async () => {
+      perfLogger.event("useGestureRecognition", "lazy init started");
+      setLoadingProgress("Loading MediaPipe WASM...");
+
+      try {
+        const vision = await FilesetResolver.forVisionTasks(
+          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+        );
+
+        if (!mounted) {
+          return;
+        }
+
+        setLoadingProgress("Loading gesture recognizer model...");
+
+        const instance = await GestureRecognizer.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath:
+              "https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task",
+            delegate: "GPU",
+          },
+          runningMode: "VIDEO",
+          numHands: 2,
+        });
+
+        if (!mounted) {
+          return;
+        }
+
+        recognizerRef.current = instance;
+        setIsLoading(false);
+        perfLogger.event("useGestureRecognition", "lazy init complete");
+      } catch (err) {
+        perfLogger.event("useGestureRecognition", "lazy init failed", {
+          error: err,
+        });
+        setError(
+          err instanceof Error ? err.message : "Failed to initialize recognizer"
+        );
+        setIsLoading(false);
+      }
     };
-  }, [destroyRecognizer]);
+
+    initRecognizer();
+
+    return () => {
+      mounted = false;
+      if (recognizerRef.current) {
+        recognizerRef.current.close();
+        recognizerRef.current = null;
+      }
+    };
+  }, []);
 
   const drawLandmarksOnCanvas = (results: GestureRecognizerResult) => {
     const canvas = canvasRef.current;
@@ -89,7 +125,7 @@ export const useGestureRecognition = ({
     perfLogger.event("useGestureRecognition", "startDetection called");
     const loop = () => {
       const video = videoRef.current;
-      const recognizer = useRecognizerStore.getState().recognizer;
+      const recognizer = recognizerRef.current;
 
       if (!(video && recognizer) || video.readyState !== 4) {
         requestAnimationFrame(loop);
@@ -97,11 +133,8 @@ export const useGestureRecognition = ({
       }
 
       frameCountRef.current++;
-      const startTime = performance.now();
 
       const results = recognizer.recognizeForVideo(video, performance.now());
-
-      const processingTime = performance.now() - startTime;
 
       if (results.landmarks?.length) {
         const handData = {
@@ -131,8 +164,6 @@ export const useGestureRecognition = ({
         onHandData?.(handData);
       }
 
-      // perfLogger.gestureLoop(frameCountRef.current, processingTime);
-
       if (drawLandmarks) {
         setTimeout(() => {
           drawLandmarksOnCanvas(results);
@@ -145,5 +176,5 @@ export const useGestureRecognition = ({
     loop();
   };
 
-  return { canvasRef, startDetection };
+  return { canvasRef, startDetection, isLoading, loadingProgress, error };
 };

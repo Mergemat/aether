@@ -8,22 +8,28 @@ const perfLogger = {
   renderCounts: new Map<string, number>(),
   timestamps: new Map<string, number>(),
 
-  shouldLog(level: LogLevel): boolean {
-    if (!this.enabled) return false;
+  shouldLog(_level: LogLevel): boolean {
+    if (!this.enabled) {
+      return false;
+    }
     return true;
   },
 
   formatMessage(...args: any[]): string {
-    return args.map(arg => {
-      if (typeof arg === "object") {
-        return JSON.stringify(arg, null, 2);
-      }
-      return String(arg);
-    }).join(" ");
+    return args
+      .map((arg) => {
+        if (typeof arg === "object") {
+          return JSON.stringify(arg, null, 2);
+        }
+        return String(arg);
+      })
+      .join(" ");
   },
 
   log(level: LogLevel, ...args: any[]) {
-    if (!this.shouldLog(level)) return;
+    if (!this.shouldLog(level)) {
+      return;
+    }
 
     const timestamp = performance.now().toFixed(2);
     const message = `${LOG_PREFIX} [${timestamp}ms] ${this.formatMessage(...args)}`;
@@ -58,7 +64,9 @@ const perfLogger = {
     this.log(
       "log",
       `RENDER ${componentName} #${count}`,
-      timeSinceLastRender !== "N/A" ? `(${timeSinceLastRender}ms since last)` : "",
+      timeSinceLastRender !== "N/A"
+        ? `(${timeSinceLastRender}ms since last)`
+        : "",
       props ? "props:" : "",
       props
     );
@@ -73,7 +81,12 @@ const perfLogger = {
   },
 
   storeUpdate(storeName: string, action: string, data?: any) {
-    this.log("log", `STORE UPDATE ${storeName} ${action}`, data ? "data:" : "", data);
+    this.log(
+      "log",
+      `STORE UPDATE ${storeName} ${action}`,
+      data ? "data:" : "",
+      data
+    );
   },
 
   storeSubscribe(storeName: string, selector: string) {

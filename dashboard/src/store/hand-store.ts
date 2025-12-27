@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import type { HandData } from "@/types";
-import perfLogger from "@/lib/utils/logger";
 
 interface HandState {
   gesture: string;
