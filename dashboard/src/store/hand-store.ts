@@ -1,6 +1,6 @@
 import { create } from "zustand";
+import { clamp } from "@/lib/utils/clamp";
 import type { HandData } from "@/types";
-import { clamp } from "@/utils";
 
 interface HandState {
   gesture: string;
