@@ -1,4 +1,5 @@
 import { IconActivity, IconPlus, IconTrash } from "@tabler/icons-react";
+import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,7 +9,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -27,7 +27,8 @@ import type { Hand, Mapping, Mode } from "@/types";
 export function Mappings() {
   perfLogger.componentRender("Mappings");
 
-  const { mappings, addMapping } = useMappingsStore();
+  const mappings = useMappingsStore((state) => state.mappings);
+  const addMapping = useMappingsStore((state) => state.addMapping);
 
   const onNewMapping = () => {
     addMapping({
@@ -66,8 +67,12 @@ export function Mappings() {
 }
 
 function MappingRow({ mapping }: { mapping: Mapping }) {
-  const updateMapping = useMappingsStore((state) => state.updateMapping);
-  const deleteMapping = useMappingsStore((state) => state.deleteMapping);
+  const { updateMapping, deleteMapping } = useMappingsStore(
+    useShallow((state) => ({
+      updateMapping: state.updateMapping,
+      deleteMapping: state.deleteMapping,
+    }))
+  );
 
   const handleChange = (name: keyof Mapping, value: string | boolean) => {
     updateMapping(mapping.id, { [name]: value });
@@ -147,13 +152,18 @@ function MappingRow({ mapping }: { mapping: Mapping }) {
 }
 
 function MappingMonitor({ mapping }: { mapping: Mapping }) {
-  const handData = useHandStore(
-    (state) => state[mapping.hand].gestureData[mapping.gesture]
+  // Combined selector with shallow comparison - single subscription instead of two
+  const { handData, activeGesture } = useHandStore(
+    useShallow((state) => ({
+      handData: state[mapping.hand].gestureData[mapping.gesture],
+      activeGesture: state[mapping.hand].gesture,
+    }))
   );
-  const activeGesture = useHandStore((state) => state[mapping.hand].gesture);
 
   const isActive = activeGesture === mapping.gesture;
-  const knobRotation = clamp((handData?.rot ?? 0) * 330 - 180, -150, 180);
+  const faderValue = handData?.y ?? 0;
+  const knobValue = handData?.rot ?? 0;
+  const knobRotation = clamp(knobValue * 330 - 180, -150, 180);
 
   return (
     <div className="flex items-center gap-3 bg-muted/40 px-3 py-2 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -173,10 +183,18 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
 
           {mapping.mode === "fader" && (
             <div className="flex flex-1 items-center gap-2">
-              <Progress className="h-1.5" value={(handData?.y ?? 0) * 100} />
-              <span className="w-8 tabular-nums">
-                {(handData?.y ?? 0).toFixed(2)}
-              </span>
+              {/* CSS transform for smooth animation without re-renders */}
+              <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-primary/20">
+                <div
+                  className="absolute inset-y-0 left-0 bg-primary transition-transform duration-75"
+                  style={{
+                    width: "100%",
+                    transform: `scaleX(${faderValue})`,
+                    transformOrigin: "left",
+                  }}
+                />
+              </div>
+              <span className="w-8 tabular-nums">{faderValue.toFixed(2)}</span>
             </div>
           )}
 
@@ -184,19 +202,16 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
             <div className="flex items-center gap-3">
               <div className="relative h-4 w-4 rounded-full border-2 border-primary/30">
                 <div
-                  className="absolute top-0 left-1/2 h-1/2 w-0.5 origin-bottom bg-primary"
+                  className="absolute top-0 left-1/2 h-1/2 w-0.5 origin-bottom bg-primary transition-transform duration-75"
                   style={{
                     transform: `translateX(-50%) rotate(${knobRotation}deg)`,
                   }}
                 />
               </div>
-              <span className="tabular-nums">
-                {(handData?.rot ?? 0).toFixed(2)}
-              </span>
+              <span className="tabular-nums">{knobValue.toFixed(2)}</span>
             </div>
           )}
         </div>
-        )
       </div>
     </div>
   );

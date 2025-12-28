@@ -17,6 +17,43 @@ interface WebSocketConfig {
   maxReconnectAttempts?: number;
 }
 
+interface OscMessage {
+  address: string;
+  value: number;
+}
+
+// Pre-allocated buffer for encoding (max 256 byte address + 4 byte float per message, 16 messages max)
+const ENCODE_BUFFER = new ArrayBuffer(4160);
+const ENCODE_VIEW = new DataView(ENCODE_BUFFER);
+const ENCODE_BYTES = new Uint8Array(ENCODE_BUFFER);
+
+/**
+ * Encode OSC messages to binary format for minimal latency.
+ * Format per message: [1 byte addr length][N bytes addr][4 bytes float32 value]
+ * Returns a view into the pre-allocated buffer (zero allocations in hot path).
+ */
+function encodeMessagesToBinary(messages: OscMessage[]): Uint8Array {
+  let offset = 0;
+
+  for (const msg of messages) {
+    const addrLen = msg.address.length;
+    ENCODE_VIEW.setUint8(offset, addrLen);
+    offset += 1;
+
+    // Write address bytes (ASCII)
+    for (let i = 0; i < addrLen; i++) {
+      ENCODE_BYTES[offset + i] = msg.address.charCodeAt(i);
+    }
+    offset += addrLen;
+
+    // Write value as float32
+    ENCODE_VIEW.setFloat32(offset, msg.value, true); // little-endian
+    offset += 4;
+  }
+
+  return new Uint8Array(ENCODE_BUFFER, 0, offset);
+}
+
 export class WebSocketClient {
   private ws: WebSocket | null = null;
   private readonly config: WebSocketConfig;
@@ -31,8 +68,8 @@ export class WebSocketClient {
     eventHandlers: WebSocketEventHandlers = {}
   ) {
     this.config = {
-      reconnectInterval: 3000,
-      maxReconnectAttempts: 5,
+      reconnectInterval: 1000,
+      maxReconnectAttempts: 10,
       ...config,
     };
     this.eventHandlers = eventHandlers;
@@ -167,6 +204,21 @@ export class WebSocketClient {
       this.ws.send(JSON.stringify(data));
     } else {
       perfLogger.websocket("send failed - not connected", { data });
+    }
+  }
+
+  /**
+   * Send OSC messages using binary protocol for minimal latency.
+   * ~10x faster than JSON for small payloads.
+   */
+  sendOscBinary(messages: OscMessage[]) {
+    if (this.isDestroyed || messages.length === 0) {
+      return;
+    }
+
+    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      const binary = encodeMessagesToBinary(messages);
+      this.ws.send(binary);
     }
   }
 

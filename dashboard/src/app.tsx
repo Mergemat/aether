@@ -91,18 +91,18 @@ export default function App() {
         <video
           autoPlay
           className="absolute inset-0 h-full w-full -scale-x-100 object-cover"
-          height={720}
+          height={480}
           muted
           onLoadedData={startDetection}
           playsInline
           ref={videoRef}
-          width={1280}
+          width={640}
         />
         <canvas
           className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100 opacity-60"
-          height={720}
+          height={480}
           ref={canvasRef}
-          width={1280}
+          width={640}
         />
       </div>
       <Mappings />
