@@ -19,6 +19,8 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
   const [loadingProgress, setLoadingProgress] =
     useState<string>("Initializing...");
   const [error, setError] = useState<string | null>(null);
+  // State to trigger re-render when recognizer is ready (ref alone won't cause re-render)
+  const [recognizer, setRecognizer] = useState<GestureRecognizer | null>(null);
   const recognizerRef = useRef<GestureRecognizer | null>(null);
 
   useEffect(() => {
@@ -45,6 +47,11 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
           modelAssetPath: MODEL_URL,
           delegate: "GPU",
         },
+        customGesturesClassifierOptions: {
+          scoreThreshold: 0.4,
+        },
+        minTrackingConfidence: 0.4,
+        minHandDetectionConfidence: 0.4,
         runningMode: "VIDEO",
         numHands: 2,
       });
@@ -59,6 +66,7 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
       }
 
       recognizerRef.current = instance;
+      setRecognizer(instance); // Trigger re-render with actual recognizer
       setIsLoading(false);
       perfLogger.event("useGestureRecognizerModel", "init complete");
     };
@@ -85,7 +93,7 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
   }, []);
 
   return {
-    recognizer: recognizerRef.current,
+    recognizer, // Use state instead of ref for proper re-render
     isLoading,
     loadingProgress,
     error,

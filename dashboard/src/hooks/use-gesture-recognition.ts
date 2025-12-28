@@ -36,9 +36,11 @@ export const useGestureRecognition = ({
   perfLogger.hookInit("useGestureRecognition", { drawLandmarks });
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const drawingUtilsRef = useRef<DrawingUtils | null>(null);
   const onHandDataRef = useRef(onHandData);
   const drawLandmarksRef = useRef(drawLandmarks);
+  const wasDrawingRef = useRef(false);
 
   // Keep refs in sync
   onHandDataRef.current = onHandData;
@@ -49,43 +51,55 @@ export const useGestureRecognition = ({
   const { recognizer, isLoading, loadingProgress, error } =
     useGestureRecognizerModel();
 
-  const drawLandmarksOnCanvas = useCallback(
-    (results: GestureRecognizerResult) => {
-      const canvas = canvasRef.current;
-      if (!canvas) {
-        return;
-      }
+  const drawOnCanvas = useCallback((results: GestureRecognizerResult) => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
 
-      const ctx = canvas.getContext("2d", { alpha: true });
-      if (!ctx) {
-        return;
-      }
+    // Cache canvas context in ref to avoid getContext call every frame
+    if (!ctxRef.current) {
+      ctxRef.current = canvas.getContext("2d", { alpha: true });
+    }
+    const ctx = ctxRef.current;
+    if (!ctx) {
+      return;
+    }
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Initialize DrawingUtils if not already done
+    if (!drawingUtilsRef.current) {
+      drawingUtilsRef.current = new DrawingUtils(ctx);
+    }
+    const drawingUtils = drawingUtilsRef.current;
 
-      if (!results.landmarks?.length) {
-        return;
+    // Only clear if we have landmarks or were drawing before
+    if (!results.landmarks?.length) {
+      if (wasDrawingRef.current) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        wasDrawingRef.current = false;
       }
+      return;
+    }
 
-      if (!drawingUtilsRef.current) {
-        drawingUtilsRef.current = new DrawingUtils(ctx);
-      }
+    wasDrawingRef.current = true;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      for (const landmarks of results.landmarks) {
-        drawingUtilsRef.current.drawConnectors(
-          landmarks,
-          HandLandmarker.HAND_CONNECTIONS
-        );
-        drawingUtilsRef.current.drawLandmarks(landmarks);
-      }
-    },
-    []
-  );
+    for (const landmarks of results.landmarks) {
+      drawingUtils.drawConnectors(landmarks, HandLandmarker.HAND_CONNECTIONS, {
+        color: "#fff",
+        lineWidth: 2,
+      });
+      // drawingUtils.drawLandmarks(landmarks, {
+      //   color: "#22c55e",
+      //   radius: 3,
+      // });
+    }
+  }, []);
 
   const handleResults = useCallback(
     (results: GestureRecognizerResult) => {
       if (drawLandmarksRef.current) {
-        drawLandmarksOnCanvas(results);
+        drawOnCanvas(results);
       }
 
       if (!results.landmarks?.length) {
@@ -119,7 +133,7 @@ export const useGestureRecognition = ({
 
       onHandDataRef.current?.(handData);
     },
-    [drawLandmarksOnCanvas, updateHand]
+    [drawOnCanvas, updateHand]
   );
 
   const { start, stop } = useDetectionLoop({

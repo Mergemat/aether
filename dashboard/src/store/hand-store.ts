@@ -28,30 +28,29 @@ export const useHandStore = create<RecognitionStore>((set) => ({
   updateHand: (side, gesture, data) =>
     set((state) => {
       const prev = state[side];
-
       const { y, rot } = data;
 
-      // perfLogger.storeUpdate("hand-store", `updateHand(${side})`, {
-      //   gesture,
-      //   y: y.toFixed(3),
-      //   rot: rot.toFixed(3),
-      //   prevGesture: prev.gesture,
-      //   willUpdate: !(prev.gesture === gesture && prev.y === y && prev.rot === rot),
-      // });
-
+      // Early return if nothing changed
       if (prev.gesture === gesture && prev.y === y && prev.rot === rot) {
         return state;
       }
+
+      // Check if gestureData for this gesture actually changed
+      const existingGestureData = prev.gestureData[gesture];
+      const gestureDataChanged =
+        !existingGestureData ||
+        existingGestureData.y !== y ||
+        existingGestureData.rot !== rot;
 
       return {
         [side]: {
           ...prev,
           gesture,
           ...data,
-          gestureData: {
-            ...prev.gestureData,
-            [gesture]: data,
-          },
+          // Only create new gestureData object if the data actually changed
+          gestureData: gestureDataChanged
+            ? { ...prev.gestureData, [gesture]: data }
+            : prev.gestureData,
         },
       };
     }),

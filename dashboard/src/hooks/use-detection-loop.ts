@@ -64,6 +64,7 @@ export function useDetectionLoop({
         return;
       }
 
+      // No FPS throttling - run as fast as possible for minimal latency
       const results = recognizer.recognizeForVideo(video, performance.now());
       onResultsRef.current(results);
 

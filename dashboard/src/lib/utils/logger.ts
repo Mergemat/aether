@@ -7,7 +7,7 @@ type LogData = string | number | boolean | object | null | undefined;
 const MAX_ENTRIES = 100;
 
 const perfLogger = {
-  enabled: true,
+  enabled: import.meta.env.DEV,
   logLevel: "log" as LogLevel,
   renderCounts: new Map<string, number>(),
   timestamps: new Map<string, number>(),
@@ -132,28 +132,6 @@ const perfLogger = {
 
   websocket(event: string, data?: LogData) {
     this.log("info", `WEBSOCKET ${event}`, data ? "data:" : "", data);
-  },
-
-  gestureLoop(frameCount: number, processingTime: number) {
-    this.log(
-      "log",
-      `GESTURE LOOP frame#${frameCount}`,
-      `processing: ${processingTime.toFixed(2)}ms`
-    );
-  },
-
-  renderStats() {
-    console.group(`${LOG_PREFIX} RENDER STATISTICS`);
-    for (const [component, count] of this.renderCounts.entries()) {
-      console.log(`${component}: ${count} renders`);
-    }
-    console.groupEnd();
-  },
-
-  reset() {
-    this.renderCounts.clear();
-    this.timestamps.clear();
-    this.log("log", "LOGGER RESET");
   },
 };
 

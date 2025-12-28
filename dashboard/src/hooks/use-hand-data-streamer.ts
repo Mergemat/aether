@@ -36,9 +36,18 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
   const mappingsRef = useRef(mappings);
   useEffect(() => {
     mappingsRef.current = mappings;
+
+    // Clean up stale entries from lastSentValuesRef when mappings change
+    // This prevents memory leak from removed mappings
+    const validAddresses = new Set(mappings.map((m) => m.address));
+    for (const key of lastSentValuesRef.current.keys()) {
+      if (!validAddresses.has(key)) {
+        lastSentValuesRef.current.delete(key);
+      }
+    }
   }, [mappings]);
 
-  const valueThreshold = config.valueThreshold ?? 0.001;
+  const valueThreshold = config.valueThreshold ?? 0.001; // Lower threshold for minimal latency
 
   const sendHandData = (handData: { left: HandData; right: HandData }) => {
     if (!clientRef.current) {
@@ -178,7 +187,6 @@ function buildMessages(
 }
 
 function sendMessages(client: WebSocketClient, messages: HandDataMessage[]) {
-  for (const message of messages) {
-    client.send(message);
-  }
+  // Binary protocol for minimal latency
+  client.sendOscBinary(messages);
 }

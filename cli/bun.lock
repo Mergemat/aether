@@ -4,11 +4,11 @@
     "": {
       "name": "cli",
       "dependencies": {
-        "@types/node-osc": "^9.1.0",
         "node-osc": "^11.1.1",
       },
       "devDependencies": {
         "@types/bun": "latest",
+        "@types/node-osc": "^9.1.0",
       },
       "peerDependencies": {
         "typescript": "^5",

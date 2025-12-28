@@ -43,7 +43,7 @@ export const useWebcam = () => {
     const init = async () => {
       perfLogger.event("useWebcam", "requesting camera access");
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 1280, height: 720 },
+        video: { width: 1280, height: 720 }, // Lower resolution for faster processing
       });
 
       if (!mounted) {
