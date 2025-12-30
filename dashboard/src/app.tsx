@@ -81,7 +81,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="relative aspect-video w-full bg-black">
+      <div className="relative mr-0 ml-auto aspect-video w-full max-w-150 bg-black">
         {isLoading && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/80">
             <Spinner className="size-8" />

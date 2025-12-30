@@ -1,3 +1,5 @@
+import type { GESTURES } from "./lib/constants";
+
 export type Hand = "left" | "right";
 export type Mode = "trigger" | "fader" | "knob";
 
@@ -25,3 +27,5 @@ export interface Mapping {
   address: string;
   mode: Mode;
 }
+
+export type Gesture = keyof typeof GESTURES;

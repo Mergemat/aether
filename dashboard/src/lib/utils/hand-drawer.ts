@@ -1,5 +1,5 @@
 import {
-  DrawingUtils,
+  type DrawingUtils,
   type GestureRecognizerResult,
   HandLandmarker,
 } from "@mediapipe/tasks-vision";
