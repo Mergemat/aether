@@ -1,0 +1,8 @@
+{
+  "name": "aether",
+  "private": true,
+  "workspaces": ["cli", "dashboard"],
+  "scripts": {
+    "dev": "bun run --filter '*' dev"
+  }
+}
