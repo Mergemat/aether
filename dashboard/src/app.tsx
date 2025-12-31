@@ -90,7 +90,7 @@ export default function App() {
         )}
         <video
           autoPlay
-          className="absolute inset-0 h-full w-full -scale-x-100 object-cover"
+          className="absolute inset-0 h-full w-full -scale-x-100 object-cover opacity-70"
           height={480}
           muted
           onLoadedData={startDetection}
@@ -99,7 +99,7 @@ export default function App() {
           width={640}
         />
         <canvas
-          className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100 opacity-60"
+          className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100"
           height={480}
           ref={canvasRef}
           width={640}
