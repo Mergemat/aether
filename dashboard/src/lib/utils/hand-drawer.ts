@@ -4,18 +4,14 @@ import {
   type NormalizedLandmark,
 } from "@mediapipe/tasks-vision";
 
-// --- Stylish Cyberpunk / Sci-Fi HUD Theme ---
+// --- Sleek Minimalist Theme ---
 const THEME = {
-  cyan: "#00f3ff",
-  cyanDim: "rgba(0, 243, 255, 0.2)",
-  cyanGlow: "rgba(0, 243, 255, 0.6)",
-  blue: "#0066ff",
-  blueDim: "rgba(0, 102, 255, 0.2)",
-  white: "#ffffff",
-  whiteDim: "rgba(255, 255, 255, 0.7)",
-  alert: "#ff0055",
-  font: "bold 12px 'JetBrains Mono', monospace",
-  fontSmall: "10px 'JetBrains Mono', monospace",
+  primary: "#ffffff",
+  primaryDim: "rgba(255, 255, 255, 0.4)",
+  secondary: "#a1a1aa", // Zinc 400
+  secondaryDim: "rgba(161, 161, 170, 0.2)",
+  font: "500 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+  fontSmall: "10px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
 };
 
 interface HandValues {
@@ -26,17 +22,6 @@ interface HandValues {
 
 const PI_2 = Math.PI * 2;
 const START_ANGLE = -Math.PI / 2;
-
-// Helper to set glow effect
-const setGlow = (ctx: CanvasRenderingContext2D, color: string, blur: number) => {
-  ctx.shadowColor = color;
-  ctx.shadowBlur = blur;
-};
-
-const resetGlow = (ctx: CanvasRenderingContext2D) => {
-  ctx.shadowColor = "transparent";
-  ctx.shadowBlur = 0;
-};
 
 const drawSkeleton = (
   ctx: CanvasRenderingContext2D,
@@ -53,16 +38,10 @@ const drawSkeleton = (
     ctx.lineTo(end.x * width, end.y * height);
   }
 
-  // Outer glow for bones
-  setGlow(ctx, THEME.cyan, 15);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = THEME.cyanDim;
-  ctx.stroke();
-
-  // Inner core for bones
-  resetGlow(ctx);
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = THEME.cyan;
+  // Clean bone lines
+  ctx.shadowBlur = 0;
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = THEME.primaryDim;
   ctx.stroke();
 
   // 2. Draw Joints (Nodes)
@@ -71,15 +50,11 @@ const drawSkeleton = (
     const cy = landmark.y * height;
 
     ctx.beginPath();
-    ctx.arc(cx, cy, 3, 0, PI_2);
+    ctx.arc(cx, cy, 2.5, 0, PI_2);
 
-    // Node Glow
-    setGlow(ctx, THEME.white, 10);
-    ctx.fillStyle = THEME.white;
+    // Simple minimal node
+    ctx.fillStyle = THEME.primary;
     ctx.fill();
-
-    // Reset for next
-    resetGlow(ctx);
   }
 };
 
@@ -98,55 +73,38 @@ const drawHUD = (
   const palmX = ((p0.x + p5.x + p17.x) / 3) * width;
   const palmY = ((p0.y + p5.y + p17.y) / 3) * height;
 
-  // --- 1. Rotation Ring (Tech Circle) ---
+  // --- 1. Rotation Ring ---
   const ringRadius = 32;
 
-  // Background Ring (Thin, technical)
+  // Background Ring (Simple circle)
   ctx.beginPath();
   ctx.arc(palmX, palmY, ringRadius, 0, PI_2);
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = THEME.cyanDim;
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = THEME.secondaryDim;
   ctx.stroke();
-
-  // Decorative Ticks on Ring
-  for (let i = 0; i < 12; i++) {
-    const angle = (i / 12) * PI_2;
-    const x1 = palmX + Math.cos(angle) * (ringRadius - 2);
-    const y1 = palmY + Math.sin(angle) * (ringRadius - 2);
-    const x2 = palmX + Math.cos(angle) * (ringRadius + 2);
-    const y2 = palmY + Math.sin(angle) * (ringRadius + 2);
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = THEME.cyanDim;
-    ctx.stroke();
-  }
 
   // Active Value Arc
   const endAngle = START_ANGLE - values.rot * PI_2;
   ctx.beginPath();
   ctx.arc(palmX, palmY, ringRadius, START_ANGLE, endAngle, true); // counter-clockwise
 
-  setGlow(ctx, THEME.cyan, 15);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = THEME.cyan;
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = THEME.primary;
   ctx.stroke();
-  resetGlow(ctx);
 
   // Label "ROT"
   ctx.save();
   ctx.translate(palmX, palmY);
   ctx.scale(-1, 1); // Mirror text
-  ctx.fillStyle = THEME.white;
+  ctx.fillStyle = THEME.primary;
   ctx.font = THEME.fontSmall;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("ROT", 0, -4);
+  ctx.fillText("ROT", 0, -6);
 
   // Numeric Value
-  ctx.fillStyle = THEME.cyan;
-  ctx.font = "bold 10px 'JetBrains Mono'";
+  ctx.fillStyle = THEME.primary;
+  ctx.font = THEME.font;
   ctx.fillText(values.rot.toFixed(2), 0, 8);
   ctx.restore();
 
@@ -165,21 +123,19 @@ const drawHUD = (
   minX *= width;
   maxX *= width;
 
-  const sliderDist = 50;
+  const sliderDist = 40;
   const sliderX = handedness === "right" ? minX - sliderDist : maxX + sliderDist;
-  const sliderHeight = 100;
+  const sliderHeight = 80;
   const sliderTop = palmY - sliderHeight / 2;
   const sliderBottom = palmY + sliderHeight / 2;
 
-  // Track Line (Dashed/Tech)
+  // Track Line
   ctx.beginPath();
   ctx.moveTo(sliderX, sliderTop);
   ctx.lineTo(sliderX, sliderBottom);
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = THEME.blueDim;
-  ctx.setLineDash([4, 4]); // Dashed line
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = THEME.secondaryDim;
   ctx.stroke();
-  ctx.setLineDash([]); // Reset
 
   // Active Fill Bar
   const fillHeight = sliderHeight * values.y;
@@ -188,35 +144,24 @@ const drawHUD = (
   ctx.beginPath();
   ctx.moveTo(sliderX, sliderBottom);
   ctx.lineTo(sliderX, currentY);
-  setGlow(ctx, THEME.cyan, 10);
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = THEME.cyan;
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = THEME.primary;
   ctx.stroke();
-  resetGlow(ctx);
 
-  // Indicator Triangle/Tick at current level
+  // Indicator Dot
   ctx.beginPath();
-  const tickSize = 6;
-  if (handedness === "right") {
-    ctx.moveTo(sliderX - tickSize, currentY);
-    ctx.lineTo(sliderX - tickSize * 2, currentY - tickSize / 2);
-    ctx.lineTo(sliderX - tickSize * 2, currentY + tickSize / 2);
-  } else {
-    ctx.moveTo(sliderX + tickSize, currentY);
-    ctx.lineTo(sliderX + tickSize * 2, currentY - tickSize / 2);
-    ctx.lineTo(sliderX + tickSize * 2, currentY + tickSize / 2);
-  }
-  ctx.fillStyle = THEME.white;
+  ctx.arc(sliderX, currentY, 3, 0, PI_2);
+  ctx.fillStyle = THEME.primary;
   ctx.fill();
 
   // Label
   ctx.save();
-  ctx.translate(sliderX, sliderBottom + 20);
+  ctx.translate(sliderX, sliderBottom + 16);
   ctx.scale(-1, 1);
-  ctx.fillStyle = THEME.white;
-  ctx.font = THEME.font;
+  ctx.fillStyle = THEME.secondary;
+  ctx.font = THEME.fontSmall;
   ctx.textAlign = "center";
-  ctx.fillText("Y-AXIS", 0, 0);
+  ctx.fillText("Y", 0, 0);
   ctx.restore();
 };
 
