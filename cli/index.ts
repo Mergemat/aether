@@ -1,6 +1,6 @@
 import { Bundle, Client } from "node-osc";
 
-const osc = new Client("127.0.0.1", 9000);
+const osc = new Client("127.0.0.1", 7099);
 
 interface OscMessage {
 	address: string;
