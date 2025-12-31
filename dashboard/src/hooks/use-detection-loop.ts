@@ -40,11 +40,21 @@ export function useDetectionLoop({
     }
   }, []);
 
+  // Track if start was requested (to auto-start when recognizer loads)
+  const startRequestedRef = useRef(false);
+
   const start = useCallback(() => {
     perfLogger.event("useDetectionLoop", "start called");
+    startRequestedRef.current = true;
 
     if (isRunningRef.current) {
       perfLogger.event("useDetectionLoop", "start skipped - already running");
+      return;
+    }
+
+    // Can't start without recognizer - will auto-start when it loads
+    if (!recognizer) {
+      perfLogger.event("useDetectionLoop", "start deferred - recognizer not ready");
       return;
     }
 
@@ -75,6 +85,14 @@ export function useDetectionLoop({
 
     loop();
   }, [videoRef, recognizer]);
+
+  // Auto-start when recognizer becomes available (if start was previously requested)
+  useEffect(() => {
+    if (recognizer && startRequestedRef.current && !isRunningRef.current) {
+      perfLogger.event("useDetectionLoop", "auto-starting - recognizer now ready");
+      start();
+    }
+  }, [recognizer, start]);
 
   useEffect(() => {
     return () => {
