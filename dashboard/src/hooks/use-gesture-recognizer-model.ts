@@ -47,11 +47,14 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
           modelAssetPath: MODEL_URL,
           delegate: "GPU",
         },
-        customGesturesClassifierOptions: {
-          scoreThreshold: 0.4,
+        cannedGesturesClassifierOptions: {
+          scoreThreshold: 0.5,
         },
-        minTrackingConfidence: 0.4,
-        minHandDetectionConfidence: 0.4,
+        customGesturesClassifierOptions: {
+          scoreThreshold: 0.5,
+        },
+        minTrackingConfidence: 0.6,
+        minHandDetectionConfidence: 0.6,
         runningMode: "VIDEO",
         numHands: 2,
       });

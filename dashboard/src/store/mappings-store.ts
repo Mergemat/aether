@@ -5,6 +5,11 @@ import { GESTURES } from "@/lib/constants";
 import perfLogger from "@/lib/utils/logger";
 import type { Mapping } from "@/types";
 
+const GESTURE_INDEX_MAP = new Map<string, number>(GESTURES.map((g, i) => [g, i]));
+
+const getGestureIndex = (gesture: string | undefined): number =>
+  gesture !== undefined ? GESTURE_INDEX_MAP.get(gesture) ?? -1 : -1;
+
 interface MappingsState {
   mappings: Mapping[];
   addMapping: (m: Omit<Mapping, "id" | "address">) => void;
@@ -33,7 +38,7 @@ export const useMappingsStore = create<MappingsState>()(
         const mapping: Mapping = {
           ...m,
           id: crypto.randomUUID(),
-          address: `/${m.hand}/${GESTURES.indexOf(m.gesture ?? "")}/${m.mode}`,
+          address: `/${m.hand}/${getGestureIndex(m.gesture)}/${m.mode}`,
         };
 
         set({ mappings: [...mappings, mapping] });
@@ -66,7 +71,7 @@ export const useMappingsStore = create<MappingsState>()(
           ...mapping,
           ...updates,
         };
-        updated.address = `/${updated.hand}/${GESTURES.indexOf(updated.gesture)}/${updated.mode}`;
+        updated.address = `/${updated.hand}/${getGestureIndex(updated.gesture)}/${updated.mode}`;
         set({ mappings: mappings.map((m) => (m.id === id ? updated : m)) });
       },
     }),

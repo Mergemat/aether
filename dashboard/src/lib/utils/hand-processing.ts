@@ -1,38 +1,20 @@
 import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
 import { clamp } from "./clamp";
 
-/**
- * Get the landmark indices to use for rotation calculation based on gesture.
- * Different gestures have different fingers visible/extended, so we use
- * landmarks that are most reliable for each gesture.
- *
- * Returns [fromIndex, toIndex] for calculating the rotation angle.
- */
+const PALM_INDICES = [0, 5, 9, 13, 17];
+
+const ROTATION_LANDMARK_MAP = new Map<string, [number, number]>([
+  ["Open_Palm", [5, 17]],
+  ["ILoveYou", [5, 17]],
+  ["Victory", [5, 9]],
+  ["Pointing_Up", [0, 5]],
+  ["Closed_Fist", [0, 9]],
+  ["Thumb_Up", [0, 9]],
+  ["Thumb_Down", [0, 9]],
+]);
+
 const getRotationLandmarks = (gesture: string): [number, number] => {
-  switch (gesture) {
-    // Full palm visible - use index to pinky base
-    case "Open_Palm":
-    case "ILoveYou":
-      return [5, 17];
-
-    // Index and middle extended - use index to middle base
-    case "Victory":
-      return [5, 9];
-
-    // Only index extended - use wrist to index base
-    case "Pointing_Up":
-      return [0, 5];
-
-    // Fist-based gestures - use wrist to middle base (stable palm points)
-    case "Closed_Fist":
-    case "Thumb_Up":
-    case "Thumb_Down":
-      return [0, 9];
-
-    // Default fallback - use wrist to middle base
-    default:
-      return [0, 9];
-  }
+  return ROTATION_LANDMARK_MAP.get(gesture) ?? [0, 9];
 };
 
 export const processHandLandmarks = (
@@ -41,10 +23,9 @@ export const processHandLandmarks = (
   gesture = "None"
 ) => {
   // Average palm joints to get a stable center point
-  const palmIndices = [0, 5, 9, 13, 17];
   const avgY =
-    palmIndices.reduce((sum, i) => sum + landmarks[i].y, 0) /
-    palmIndices.length;
+    PALM_INDICES.reduce((sum, i) => sum + landmarks[i].y, 0) /
+    PALM_INDICES.length;
 
   const y = 1 - avgY;
 

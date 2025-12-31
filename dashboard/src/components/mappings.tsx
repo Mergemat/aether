@@ -71,10 +71,9 @@ export function Mappings() {
 }
 
 function MappingRow({ mapping }: { mapping: Mapping }) {
-  const { updateMapping, deleteMapping } = useMappingsStore(
+  const { updateMapping } = useMappingsStore(
     useShallow((state) => ({
       updateMapping: state.updateMapping,
-      deleteMapping: state.deleteMapping,
     }))
   );
 
