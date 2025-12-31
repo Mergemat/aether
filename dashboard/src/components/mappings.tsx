@@ -1,4 +1,4 @@
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { useShallow } from "zustand/react/shallow";
 import ButtonImage from "@/assets/Button.png";
 import ButtonPressedImage from "@/assets/Button-Pressed.png";
@@ -20,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { GESTURE_EMOJIS, GESTURES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import { clamp } from "@/lib/utils/clamp";
 import perfLogger from "@/lib/utils/logger";
 import { useHandStore } from "@/store/hand-store";
@@ -55,7 +55,7 @@ export function Mappings() {
           Add Mapping
         </Button>
       </CardHeader>
-      <CardContent className="flex gap-3 overflow-x-auto">
+      <CardContent className="grid grid-cols-2 gap-3 overflow-x-auto md:grid-cols-6 md:grid-rows-1">
         {mappings.length === 0 ? (
           <div className="border-2 border-dashed py-10 text-center text-muted-foreground text-sm">
             No mappings configured.
@@ -83,75 +83,80 @@ function MappingRow({ mapping }: { mapping: Mapping }) {
   };
 
   return (
-    <div className="group flex h-fit flex-col items-center gap-3 border bg-card p-3 transition-all hover:shadow-sm">
-      <Select
-        onValueChange={(v: Mode) => handleChange("mode", v)}
-        value={mapping.mode}
-      >
-        <SelectTrigger className="h-8 w-36 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="trigger">Trigger</SelectItem>
-          <SelectItem value="fader">Fader</SelectItem>
-          <SelectItem value="knob">Knob</SelectItem>
-        </SelectContent>
-      </Select>
+    <div
+      className={cn(
+        "group flex flex-col items-center justify-between gap-3 border bg-card p-3 hover:shadow-sm md:flex-col",
+        mapping.mode === "fader" ? "col-span-2" : ""
+      )}
+    >
+      <div className="flex w-full flex-row items-center justify-between gap-2">
+        <Select
+          onValueChange={(v) => handleChange("gesture", v)}
+          value={mapping.gesture}
+        >
+          <SelectTrigger className="h-8 w-20 text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {GESTURES.map((g) => (
+              <SelectItem className="text-sm" key={g} value={g}>
+                {GESTURE_EMOJIS[g]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          onValueChange={(v: Hand) => handleChange("hand", v)}
+          value={mapping.hand}
+        >
+          <SelectTrigger className="h-8 w-20 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="left">Left</SelectItem>
+            <SelectItem value="right">Right</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <MappingMonitor mapping={mapping} />
 
-      <div className="flex flex-col items-center gap-2">
-        <div className="flex w-full items-center justify-between">
-          <Select
-            onValueChange={(v) => handleChange("gesture", v)}
-            value={mapping.gesture}
-          >
-            <SelectTrigger className="h-8 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {GESTURES.map((g) => (
-                <SelectItem className="text-sm" key={g} value={g}>
-                  {GESTURE_EMOJIS[g]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(v: Hand) => handleChange("hand", v)}
-            value={mapping.hand}
-          >
-            <SelectTrigger className="h-8 w-20 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="left">Left</SelectItem>
-              <SelectItem value="right">Right</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="flex w-full items-center justify-between gap-2">
+        <Select
+          onValueChange={(v: Mode) => handleChange("mode", v)}
+          value={mapping.mode}
+        >
+          <SelectTrigger className="h-8 w-20 text-xs md:w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="trigger">Trigger</SelectItem>
+            <SelectItem value="fader">Fader</SelectItem>
+            <SelectItem value="knob">Knob</SelectItem>
+          </SelectContent>
+        </Select>
 
         <Input
-          className="h-8 w-36 flex-1 font-mono text-xs"
+          className="h-8 w-20 flex-1 font-mono text-xs md:w-36"
           onChange={(e) => handleChange("address", e.target.value)}
           placeholder="/osc/address"
           readOnly
           value={mapping.address}
         />
 
-        <Switch
-          checked={mapping.enabled}
-          onCheckedChange={(v) => handleChange("enabled", v)}
-        />
-
-        <Button
-          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-          onClick={() => deleteMapping(mapping.id)}
-          size="icon"
-          variant="ghost"
-        >
-          <IconTrash className="h-4 w-4" />
-        </Button>
+        {/* <Switch */}
+        {/*   checked={mapping.enabled} */}
+        {/*   onCheckedChange={(v) => handleChange("enabled", v)} */}
+        {/* /> */}
+        {/**/}
+        {/* <Button */}
+        {/*   className="h-8 w-8 text-muted-foreground hover:text-destructive" */}
+        {/*   onClick={() => deleteMapping(mapping.id)} */}
+        {/*   size="icon" */}
+        {/*   variant="ghost" */}
+        {/* > */}
+        {/*   <IconTrash className="h-4 w-4" /> */}
+        {/* </Button> */}
       </div>
     </div>
   );
@@ -172,13 +177,13 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
   const knobRotation = clamp(knobValue * 330 - 180, -150, 180);
 
   return (
-    <div className="flex w-36 flex-col items-center gap-2 px-3 py-3 font-medium text-[10px] text-muted-foreground uppercase tracking-wider">
+    <div className="flex flex-col items-center gap-2 px-3 py-3 font-medium text-[10px] text-muted-foreground uppercase tracking-wider md:w-36">
       <div className="flex flex-col items-center justify-center">
         {mapping.mode === "trigger" && (
           <div className="flex flex-col items-center gap-2">
             <img
               alt="Button"
-              className="h-16 w-auto transition-all duration-75"
+              className="h-16 w-auto duration-75"
               src={isActive ? ButtonPressedImage : ButtonImage}
             />
             <span className={`tabular-nums ${isActive ? "text-primary" : ""}`}>
@@ -190,15 +195,15 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
         {mapping.mode === "fader" && (
           <div className="relative flex flex-col items-center gap-2">
             {/* Fader track container */}
-            <div className="relative flex h-72 w-8 items-center justify-center overflow-hidden rounded">
-              <div className="absolute h-[90%] w-4 bg-black/20" />
+            <div className="relative flex h-12 w-72 items-center justify-center overflow-hidden rounded md:h-72 md:w-8">
+              <div className="absolute h-4 w-[90%] bg-black/20 md:h-[90%] md:w-4" />
               {/* Fader knob image - moves vertically based on value */}
               <img
                 alt="Fader"
-                className="absolute w-12 transition-all duration-75"
+                className="absolute h-12 rotate-90 duration-75 md:h-auto md:w-12 md:rotate-0"
                 src={FaderImage}
                 style={{
-                  bottom: `${faderValue * 80}%`,
+                  left: `${faderValue * 80}%`,
                 }}
               />
             </div>
@@ -210,7 +215,7 @@ function MappingMonitor({ mapping }: { mapping: Mapping }) {
           <div className="flex flex-col items-center gap-2">
             <img
               alt="Knob"
-              className="h-16 w-auto transition-transform duration-75"
+              className="h-16 w-auto duration-75"
               src={KnobImage}
               style={{
                 transform: `rotate(${knobRotation}deg)`,
