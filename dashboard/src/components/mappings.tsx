@@ -4,6 +4,8 @@ import {
   IconSettings,
   IconTrash,
 } from "@tabler/icons-react";
+import { Reorder } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +34,18 @@ export function Mappings() {
 
   const mappings = useMappingsStore((state) => state.mappings);
   const addMapping = useMappingsStore((state) => state.addMapping);
+  const reorderMappings = useMappingsStore((state) => state.reorderMappings);
+
+  // Local state for drag reordering - prevents store updates during drag
+  const [localMappings, setLocalMappings] = useState(mappings);
+  const isDragging = useRef(false);
+
+  // Sync local state when store changes (but not during drag)
+  useEffect(() => {
+    if (!isDragging.current) {
+      setLocalMappings(mappings);
+    }
+  }, [mappings]);
 
   const onNewMapping = () => {
     addMapping({
@@ -42,26 +56,50 @@ export function Mappings() {
     });
   };
 
+  const handleReorder = (newOrder: Mapping[]) => {
+    isDragging.current = true;
+    setLocalMappings(newOrder);
+  };
+
+  const handleDragEnd = () => {
+    isDragging.current = false;
+    // Only update store when drag ends
+    reorderMappings(localMappings);
+  };
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-between">
         <h2 className="font-semibold text-lg tracking-tight">Mappings</h2>
-        <Button onClick={onNewMapping} size="sm" className="h-8 gap-2">
+        <Button className="h-8 gap-2" onClick={onNewMapping} size="sm">
           <IconPlus className="h-4 w-4" />
           Add
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
-        {mappings.map((mapping) => (
-          <MappingTile key={mapping.id} mapping={mapping} />
+      <Reorder.Group
+        axis="x"
+        className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8"
+        onReorder={handleReorder}
+        values={localMappings}
+      >
+        {localMappings.map((mapping) => (
+          <Reorder.Item
+            className="relative"
+            drag
+            key={mapping.id}
+            onDragEnd={handleDragEnd}
+            value={mapping}
+          >
+            <MappingTile mapping={mapping} />
+          </Reorder.Item>
         ))}
-        {mappings.length === 0 && (
+        {localMappings.length === 0 && (
           <div className="col-span-full flex h-32 items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground text-sm">
             No mappings configured
           </div>
         )}
-      </div>
+      </Reorder.Group>
     </div>
   );
 }
@@ -96,14 +134,14 @@ function MappingTile({ mapping }: { mapping: Mapping }) {
         <Popover>
           <PopoverTrigger asChild>
             <Button
-              variant="ghost"
-              size="icon"
               className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+              size="icon"
+              variant="ghost"
             >
               <IconSettings className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-4" align="end">
+          <PopoverContent align="end" className="w-80 p-4">
             <div className="grid gap-4">
               <div className="space-y-2">
                 <h4 className="font-medium leading-none">Configuration</h4>
@@ -115,8 +153,8 @@ function MappingTile({ mapping }: { mapping: Mapping }) {
                 <div className="grid grid-cols-3 items-center gap-4">
                   <span className="text-sm">Hand</span>
                   <Select
-                    value={mapping.hand}
                     onValueChange={(v: Hand) => handleChange("hand", v)}
+                    value={mapping.hand}
                   >
                     <SelectTrigger className="col-span-2 h-8">
                       <SelectValue />
@@ -130,8 +168,8 @@ function MappingTile({ mapping }: { mapping: Mapping }) {
                 <div className="grid grid-cols-3 items-center gap-4">
                   <span className="text-sm">Gesture</span>
                   <Select
-                    value={mapping.gesture}
                     onValueChange={(v) => handleChange("gesture", v)}
+                    value={mapping.gesture}
                   >
                     <SelectTrigger className="col-span-2 h-8">
                       <SelectValue />
@@ -149,8 +187,8 @@ function MappingTile({ mapping }: { mapping: Mapping }) {
                 <div className="grid grid-cols-3 items-center gap-4">
                   <span className="text-sm">Mode</span>
                   <Select
-                    value={mapping.mode}
                     onValueChange={(v: Mode) => handleChange("mode", v)}
+                    value={mapping.mode}
                   >
                     <SelectTrigger className="col-span-2 h-8">
                       <SelectValue />
@@ -166,16 +204,16 @@ function MappingTile({ mapping }: { mapping: Mapping }) {
                   <span className="text-sm">Address</span>
                   <Input
                     className="col-span-2 h-8 font-mono text-xs"
-                    value={mapping.address}
                     readOnly
+                    value={mapping.address}
                   />
                 </div>
               </div>
               <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => deleteMapping(mapping.id)}
                 className="w-full"
+                onClick={() => deleteMapping(mapping.id)}
+                size="sm"
+                variant="destructive"
               >
                 <IconTrash className="mr-2 h-4 w-4" />
                 Delete Mapping
