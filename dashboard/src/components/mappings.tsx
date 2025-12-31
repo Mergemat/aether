@@ -55,7 +55,7 @@ export function Mappings() {
           Add Mapping
         </Button>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 gap-3 overflow-x-auto md:grid-cols-6 md:grid-rows-1">
+      <CardContent className="grid grid-cols-2 gap-3 overflow-x-auto md:grid-cols-6 md:grid-rows-2">
         {mappings.length === 0 ? (
           <div className="border-2 border-dashed py-10 text-center text-muted-foreground text-sm">
             No mappings configured.
@@ -86,7 +86,7 @@ function MappingRow({ mapping }: { mapping: Mapping }) {
     <div
       className={cn(
         "group flex flex-col items-center justify-between gap-3 border bg-card p-3 hover:shadow-sm md:flex-col",
-        mapping.mode === "fader" ? "col-span-2" : ""
+        mapping.mode === "fader" ? "col-span-2 md:col-span-1 md:row-span-2" : ""
       )}
     >
       <div className="flex w-full flex-row items-center justify-between gap-2">
