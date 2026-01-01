@@ -79,9 +79,10 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-8 p-4 pt-8">
-      <div className="flex justify-center">
-        <img src={logo} alt="Logo" className="h-12" />
+    <div className="flex flex-1 flex-col gap-4 px-4 pt-4">
+      <div className="flex justify-center gap-2">
+        <img alt="Logo" className="h-8" src={logo} />
+        <h1 className="font-bold text-2xl tracking-tighter">AETHER</h1>
       </div>
       <div className="mx-auto w-full max-w-3xl">
         <div className="relative aspect-video w-full overflow-hidden rounded-xl border bg-black shadow-lg">

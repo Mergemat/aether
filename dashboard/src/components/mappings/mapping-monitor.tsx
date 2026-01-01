@@ -20,7 +20,7 @@ export function MappingMonitor({ mapping }: { mapping: Mapping }) {
     return (
       <div
         className={cn(
-          "flex h-20 w-20 items-center justify-center rounded-full border-4 transition-all duration-75",
+          "flex h-20 w-20 items-center justify-center rounded-full border-4",
           isActive
             ? "scale-95 border-primary bg-primary/20 shadow-[0_0_20px_rgba(var(--primary),0.5)]"
             : "border-muted bg-muted/20"
@@ -41,7 +41,7 @@ export function MappingMonitor({ mapping }: { mapping: Mapping }) {
     return (
       <div className="relative h-20 w-8 overflow-hidden rounded-full bg-secondary/50">
         <div
-          className="absolute bottom-0 w-full rounded-b-full bg-primary transition-all duration-75"
+          className="absolute bottom-0 w-full rounded-b-full bg-primary"
           style={{ height: `${percentage}%` }}
         />
       </div>
@@ -53,7 +53,7 @@ export function MappingMonitor({ mapping }: { mapping: Mapping }) {
     return (
       <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-secondary bg-secondary/20">
         <div
-          className="absolute h-full w-1 bg-primary/50 transition-transform duration-75"
+          className="absolute h-full w-1 bg-primary/50"
           style={{ transform: `rotate(${rotation}deg)` }}
         >
           <div className="absolute top-1 h-3 w-full rounded-full bg-primary" />

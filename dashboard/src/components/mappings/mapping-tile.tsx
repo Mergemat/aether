@@ -110,7 +110,7 @@ function ConfigFields({
           onValueChange={(v: Hand) => onUpdate("hand", v)}
           value={mapping.hand}
         >
-          <SelectTrigger className="col-span-2 h-8">
+          <SelectTrigger className="col-span-2 h-8 w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -125,7 +125,7 @@ function ConfigFields({
           onValueChange={(v) => onUpdate("gesture", v)}
           value={mapping.gesture}
         >
-          <SelectTrigger className="col-span-2 h-8" id="gesture">
+          <SelectTrigger className="col-span-2 h-8 w-full" id="gesture">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -144,7 +144,7 @@ function ConfigFields({
           onValueChange={(v: Mode) => onUpdate("mode", v)}
           value={mapping.mode}
         >
-          <SelectTrigger className="col-span-2 h-8" id="mode">
+          <SelectTrigger className="col-span-2 h-8 w-full" id="mode">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
