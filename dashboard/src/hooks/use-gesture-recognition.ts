@@ -41,7 +41,7 @@ const processResults = (
   for (let i = 0; i < results.landmarks.length; i++) {
     const landmarks = results.landmarks[i];
     const gesture = results.gestures?.[i]?.[0]?.categoryName ?? "None";
-    const handedness = results.handednesses[i][0].categoryName;
+    const handedness = results.handedness[i][0].categoryName;
     const side = handedness.toLowerCase() as "left" | "right";
 
     if (gesture === "None") {
@@ -75,6 +75,7 @@ export const useGestureRecognition = ({
   drawLandmarksRef.current = drawLandmarks;
 
   const updateHand = useHandStore((state) => state.updateHand);
+  const resetHands = useHandStore((state) => state.resetHands);
 
   const { recognizer, isLoading, loadingProgress, error } =
     useGestureRecognizerModel();
@@ -100,6 +101,12 @@ export const useGestureRecognition = ({
           ctx?.clearRect(0, 0, canvas.width, canvas.height);
           wasDrawingRef.current = false;
         }
+
+        resetHands();
+        onHandDataRef.current?.({
+          left: { ...DEFAULT_HAND_DATA },
+          right: { ...DEFAULT_HAND_DATA },
+        });
         return;
       }
 
@@ -115,7 +122,7 @@ export const useGestureRecognition = ({
 
       onHandDataRef.current?.(handData);
     },
-    [updateHand, getCanvasContext]
+    [updateHand, resetHands, getCanvasContext]
   );
 
   const { start, stop } = useDetectionLoop({

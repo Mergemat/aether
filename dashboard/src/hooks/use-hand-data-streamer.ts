@@ -152,6 +152,43 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
   return { start, stop, sendHandData };
 };
 
+function buildMessageForMapping(
+  mapping: Mapping,
+  data: HandData,
+  lastSentValues: Map<string, number>,
+  valueThreshold: number
+): HandDataMessage | null {
+  const gestureMatched = data.gesture === mapping.gesture;
+
+  // For trigger mode, send 1 when gesture matches, 0 otherwise
+  if (mapping.mode === "trigger") {
+    const value = gestureMatched ? 1 : 0;
+    const lastValue = lastSentValues.get(mapping.address);
+    if (lastValue === value) {
+      return null;
+    }
+    lastSentValues.set(mapping.address, value);
+    return { address: mapping.address, value };
+  }
+
+  // For fader/knob modes, only process when gesture matches
+  if (!gestureMatched) {
+    return null;
+  }
+
+  const value = mapping.mode === "fader" ? data.y : data.rot;
+  const lastValue = lastSentValues.get(mapping.address);
+  const hasSignificantChange =
+    lastValue === undefined || Math.abs(value - lastValue) >= valueThreshold;
+
+  if (!hasSignificantChange) {
+    return null;
+  }
+
+  lastSentValues.set(mapping.address, value);
+  return { address: mapping.address, value };
+}
+
 function buildMessages(
   handData: { left: HandData; right: HandData },
   mappings: Mapping[],
@@ -166,21 +203,16 @@ function buildMessages(
     }
 
     const data = handData[mapping.hand];
-    if (data.gesture !== mapping.gesture) {
-      continue;
+    const message = buildMessageForMapping(
+      mapping,
+      data,
+      lastSentValues,
+      valueThreshold
+    );
+
+    if (message) {
+      messages.push(message);
     }
-
-    const value = mapping.mode === "fader" ? data.y : data.rot;
-    const lastValue = lastSentValues.get(mapping.address);
-    const hasSignificantChange =
-      lastValue === undefined || Math.abs(value - lastValue) >= valueThreshold;
-
-    if (!hasSignificantChange) {
-      continue;
-    }
-
-    messages.push({ address: mapping.address, value });
-    lastSentValues.set(mapping.address, value);
   }
 
   return messages;

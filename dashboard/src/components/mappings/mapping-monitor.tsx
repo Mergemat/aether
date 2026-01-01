@@ -26,6 +26,7 @@ export function MappingMonitor({ mapping }: { mapping: Mapping }) {
             : "border-muted bg-muted/20"
         )}
       >
+        {activeGesture}
         <div
           className={cn(
             "h-8 w-8 rounded-full transition-colors",

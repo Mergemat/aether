@@ -3,8 +3,6 @@ export const GESTURES = [
   "Closed_Fist",
   "Pointing_Up",
   "Victory",
-  "Thumb_Up",
-  "Thumb_Down",
   "ILoveYou",
 ] as const;
 
@@ -13,7 +11,7 @@ export const GESTURE_EMOJIS = {
   Closed_Fist: "✊",
   Pointing_Up: "☝️",
   Victory: "✌️",
-  Thumb_Up: "👍",
-  Thumb_Down: "👎",
   ILoveYou: "🤟",
 } as const;
+
+export const IGNORED_GESTURES = ["Thumb_Up", "Thumb_Down"] as const;

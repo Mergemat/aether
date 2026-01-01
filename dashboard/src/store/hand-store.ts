@@ -12,6 +12,7 @@ interface RecognitionStore {
   left: HandState;
   right: HandState;
   updateHand: (side: "left" | "right", gesture: string, data: HandData) => void;
+  resetHands: () => void;
 }
 
 const initialHand = (): HandState => ({
@@ -52,6 +53,18 @@ export const useHandStore = create<RecognitionStore>((set) => ({
             ? { ...prev.gestureData, [gesture]: data }
             : prev.gestureData,
         },
+      };
+    }),
+
+  resetHands: () =>
+    set((state) => {
+      // Only update if not already reset
+      if (state.left.gesture === "None" && state.right.gesture === "None") {
+        return state;
+      }
+      return {
+        left: { ...state.left, gesture: "None", y: 0, rot: 0 },
+        right: { ...state.right, gesture: "None", y: 0, rot: 0 },
       };
     }),
 }));

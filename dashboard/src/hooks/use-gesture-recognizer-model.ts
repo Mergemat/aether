@@ -49,9 +49,7 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
         },
         cannedGesturesClassifierOptions: {
           scoreThreshold: 0.5,
-        },
-        customGesturesClassifierOptions: {
-          scoreThreshold: 0.5,
+          categoryDenylist: ["Thumb_Up", "Thumb_Down"],
         },
         minTrackingConfidence: 0.6,
         minHandDetectionConfidence: 0.6,
