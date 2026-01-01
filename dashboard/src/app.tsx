@@ -110,7 +110,7 @@ export default function App() {
           />
         </div>
       </div>
-      <div className="mx-auto w-full max-w-7xl">
+      <div className="mx-auto w-full max-w-3xl">
         <Mappings />
       </div>
     </div>
