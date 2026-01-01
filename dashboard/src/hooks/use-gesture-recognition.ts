@@ -109,7 +109,7 @@ export const useGestureRecognition = ({
         const ctx = getCanvasContext();
         if (ctx) {
           wasDrawingRef.current = true;
-          drawHandResults(ctx, results, handData);
+          drawHandResults(ctx, results);
         }
       }
 

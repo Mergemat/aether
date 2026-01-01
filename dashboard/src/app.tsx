@@ -34,7 +34,6 @@ export default function App() {
     },
   });
 
-  // Start streamer and handle cleanup
   useEffect(() => {
     perfLogger.effect("App", 1, ["startStreamer"]);
     startStreamer();
@@ -45,7 +44,6 @@ export default function App() {
     };
   }, [startStreamer, stopStreamer]);
 
-  // Cleanup detection on unmount
   useEffect(() => {
     return () => {
       perfLogger.effectCleanup("App", 2);
