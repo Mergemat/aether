@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import logo from "./assets/logo.png";
+import logo from "./assets/logo.svg";
 import { Mappings } from "./components/mappings";
 import { Spinner } from "./components/ui/spinner";
 import { useGestureRecognition } from "./hooks/use-gesture-recognition";
