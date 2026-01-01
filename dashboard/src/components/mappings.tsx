@@ -126,8 +126,8 @@ function MappingTile({ mapping }: { mapping: Mapping }) {
           ) : (
             <IconHandStop className="h-3.5 w-3.5 text-muted-foreground" />
           )}
-          <span className="text-sm leading-none">
-            {GESTURE_EMOJIS[mapping.gesture]}
+          <span className="text-xs leading-none">
+            {mapping.hand === "left" ? "left" : "right"}
           </span>
         </div>
 
@@ -229,8 +229,12 @@ function MappingTile({ mapping }: { mapping: Mapping }) {
       </div>
 
       {/* Footer: Address/Label */}
-      <div className="flex items-center justify-center">
-        <div className="w-full truncate text-center font-mono text-[10px] text-muted-foreground/70">
+      <div className="flex items-center justify-between">
+        <span className="text-lg leading-none">
+          {GESTURE_EMOJIS[mapping.gesture]}
+        </span>
+
+        <div className="truncate text-center font-mono text-[10px] text-muted-foreground/70">
           {mapping.mode}
         </div>
       </div>
