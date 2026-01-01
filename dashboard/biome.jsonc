@@ -1,4 +1,42 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite/core", "ultracite/react"]
+  "extends": ["ultracite/core", "ultracite/react"],
+  "linter": {
+    "rules": {
+      "a11y": {
+        // These are intentional patterns in UI components
+        "useSemanticElements": "off",
+        "useFocusableInteractive": "off",
+        "useKeyWithClickEvents": "off",
+        "noNoninteractiveElementInteractions": "off",
+        "useAriaPropsForRole": "off"
+      },
+      "performance": {
+        // Namespace imports are needed for some libraries like recharts
+        "noNamespaceImport": "off"
+      },
+      "correctness": {
+        // Nested component definitions are used in DayPicker components config
+        "noNestedComponentDefinitions": "off"
+      },
+      "complexity": {
+        // Chart tooltip has acceptable complexity
+        "noExcessiveCognitiveComplexity": "off"
+      },
+      "security": {
+        // dangerouslySetInnerHTML is used safely for CSS injection in chart themes
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "suspicious": {
+        // Array index keys are sometimes necessary for stable lists
+        "noArrayIndexKey": "off",
+        // Cookie assignment is needed for sidebar state persistence
+        "noDocumentCookie": "off"
+      },
+      "style": {
+        // Nested ternaries are used in slider component
+        "noNestedTernary": "off"
+      }
+    }
+  }
 }

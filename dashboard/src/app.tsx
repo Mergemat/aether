@@ -81,7 +81,7 @@ export default function App() {
   return (
     <div className="flex flex-1 flex-col gap-4 px-4 pt-4">
       <div className="flex justify-center gap-2">
-        <img alt="Logo" className="h-8" src={logo} />
+        <img alt="Logo" className="h-8" height={32} src={logo} width={32} />
         <h1 className="font-bold text-2xl tracking-tighter">AETHER</h1>
       </div>
       <div className="mx-auto w-full max-w-3xl">
