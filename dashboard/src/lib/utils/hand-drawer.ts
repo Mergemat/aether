@@ -70,8 +70,7 @@ export const drawHandResults = (
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
 
-  for (let i = 0; i < results.landmarks.length; i++) {
-    const landmarks = results.landmarks[i];
+  for (const landmarks of results.landmarks) {
     drawSkeleton(ctx, landmarks, width, height);
   }
 };

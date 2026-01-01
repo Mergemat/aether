@@ -54,7 +54,10 @@ export function useDetectionLoop({
 
     // Can't start without recognizer - will auto-start when it loads
     if (!recognizer) {
-      perfLogger.event("useDetectionLoop", "start deferred - recognizer not ready");
+      perfLogger.event(
+        "useDetectionLoop",
+        "start deferred - recognizer not ready"
+      );
       return;
     }
 
@@ -89,7 +92,10 @@ export function useDetectionLoop({
   // Auto-start when recognizer becomes available (if start was previously requested)
   useEffect(() => {
     if (recognizer && startRequestedRef.current && !isRunningRef.current) {
-      perfLogger.event("useDetectionLoop", "auto-starting - recognizer now ready");
+      perfLogger.event(
+        "useDetectionLoop",
+        "auto-starting - recognizer now ready"
+      );
       start();
     }
   }, [recognizer, start]);
