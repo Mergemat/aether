@@ -11,14 +11,14 @@ import {
   rectSortingStrategy,
   SortableContext,
 } from "@dnd-kit/sortable";
-import { IconPlus } from "@tabler/icons-react";
 import { useEffect, useMemo } from "react";
-import { Button } from "@/components/ui/button";
 import perfLogger from "@/lib/utils/logger";
 import { useMappingsOrderStore } from "@/store/mappings-order-store";
 import { useMappingsStore } from "@/store/mappings-store";
 import type { Mapping } from "@/types";
+import { AddMappingTile } from "./mappings/add-mapping-tile";
 import { SortableMappingTile } from "./mappings/sortable-mapping-tile";
+import { Separator } from "./ui/separator";
 
 export function Mappings() {
   perfLogger.componentRender("Mappings");
@@ -78,14 +78,8 @@ export function Mappings() {
   }, [mappings, order]);
 
   return (
-    <div className="flex flex-col gap-4 p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold text-lg tracking-tight">Mappings</h2>
-        <Button className="h-8 gap-2" onClick={onNewMapping} size="sm">
-          <IconPlus className="h-4 w-4" />
-          Add
-        </Button>
-      </div>
+    <div className="flex flex-col gap-4">
+      <Separator />
 
       <DndContext
         collisionDetection={closestCenter}
@@ -97,11 +91,7 @@ export function Mappings() {
             {orderedMappings.map((mapping) => (
               <SortableMappingTile key={mapping.id} mapping={mapping} />
             ))}
-            {orderedMappings.length === 0 && (
-              <div className="col-span-full flex h-32 items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground text-sm">
-                No mappings configured
-              </div>
-            )}
+            <AddMappingTile onClick={onNewMapping} />
           </div>
         </SortableContext>
       </DndContext>
