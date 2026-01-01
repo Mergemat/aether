@@ -1,48 +1,24 @@
 import {
+  closestCenter,
   DndContext,
   type DragEndEvent,
   PointerSensor,
-  closestCenter,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 import {
-  SortableContext,
   arrayMove,
   rectSortingStrategy,
-  useSortable,
+  SortableContext,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import {
-  IconHandStop,
-  IconPlus,
-  IconSettings,
-  IconTrash,
-} from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { useEffect, useMemo } from "react";
-import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { GESTURE_EMOJIS, GESTURES } from "@/lib/constants";
-import { cn } from "@/lib/utils";
-import { clamp } from "@/lib/utils/clamp";
 import perfLogger from "@/lib/utils/logger";
-import { useHandStore } from "@/store/hand-store";
 import { useMappingsOrderStore } from "@/store/mappings-order-store";
 import { useMappingsStore } from "@/store/mappings-store";
-import type { Hand, Mapping, Mode } from "@/types";
+import type { Mapping } from "@/types";
+import { SortableMappingTile } from "./mappings/sortable-mapping-tile";
 
 export function Mappings() {
   perfLogger.componentRender("Mappings");
@@ -117,7 +93,7 @@ export function Mappings() {
         sensors={sensors}
       >
         <SortableContext items={order} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
+          <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-7">
             {orderedMappings.map((mapping) => (
               <SortableMappingTile key={mapping.id} mapping={mapping} />
             ))}
@@ -131,243 +107,4 @@ export function Mappings() {
       </DndContext>
     </div>
   );
-}
-
-function SortableMappingTile({ mapping }: { mapping: Mapping }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: mapping.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 10 : undefined,
-    opacity: isDragging ? 0.8 : undefined,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <MappingTile mapping={mapping} />
-    </div>
-  );
-}
-
-function MappingTile({ mapping }: { mapping: Mapping }) {
-  const { updateMapping, deleteMapping } = useMappingsStore(
-    useShallow((state) => ({
-      updateMapping: state.updateMapping,
-      deleteMapping: state.deleteMapping,
-    }))
-  );
-
-  const handleChange = (name: keyof Mapping, value: string | boolean) => {
-    updateMapping(mapping.id, { [name]: value });
-  };
-
-  return (
-    <div className="group relative flex aspect-square flex-col justify-between overflow-hidden rounded-2xl border bg-card p-3 shadow-sm transition-all hover:shadow-md">
-      {/* Header: Icons and Config */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-1.5 rounded-full bg-secondary/50 px-2 py-1 backdrop-blur-sm">
-          {mapping.hand === "left" ? (
-            <IconHandStop className="h-3.5 w-3.5 scale-x-[-1] text-muted-foreground" />
-          ) : (
-            <IconHandStop className="h-3.5 w-3.5 text-muted-foreground" />
-          )}
-          <span className="text-xs leading-none">
-            {mapping.hand === "left" ? "left" : "right"}
-          </span>
-        </div>
-
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
-              onPointerDown={(e) => e.stopPropagation()}
-              size="icon"
-              variant="ghost"
-            >
-              <IconSettings className="h-3.5 w-3.5 text-muted-foreground" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="end" className="w-80 p-4">
-            <div className="grid gap-4">
-              <div className="space-y-2">
-                <h4 className="font-medium leading-none">Configuration</h4>
-                <p className="text-muted-foreground text-sm">
-                  Configure the gesture mapping.
-                </p>
-              </div>
-              <div className="grid gap-2">
-                <div className="grid grid-cols-3 items-center gap-4">
-                  <span className="text-sm">Hand</span>
-                  <Select
-                    onValueChange={(v: Hand) => handleChange("hand", v)}
-                    value={mapping.hand}
-                  >
-                    <SelectTrigger className="col-span-2 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="left">Left</SelectItem>
-                      <SelectItem value="right">Right</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-3 items-center gap-4">
-                  <span className="text-sm">Gesture</span>
-                  <Select
-                    onValueChange={(v) => handleChange("gesture", v)}
-                    value={mapping.gesture}
-                  >
-                    <SelectTrigger className="col-span-2 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GESTURES.map((g) => (
-                        <SelectItem key={g} value={g}>
-                          <span className="mr-2">{GESTURE_EMOJIS[g]}</span>
-                          {g.replace(/_/g, " ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-3 items-center gap-4">
-                  <span className="text-sm">Mode</span>
-                  <Select
-                    onValueChange={(v: Mode) => handleChange("mode", v)}
-                    value={mapping.mode}
-                  >
-                    <SelectTrigger className="col-span-2 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="trigger">Trigger</SelectItem>
-                      <SelectItem value="fader">Fader</SelectItem>
-                      <SelectItem value="knob">Knob</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-3 items-center gap-4">
-                  <span className="text-sm">Address</span>
-                  <Input
-                    className="col-span-2 h-8 font-mono text-xs"
-                    readOnly
-                    value={mapping.address}
-                  />
-                </div>
-              </div>
-              <Button
-                className="w-full"
-                onClick={() => deleteMapping(mapping.id)}
-                size="sm"
-                variant="destructive"
-              >
-                <IconTrash className="mr-2 h-4 w-4" />
-                Delete Mapping
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {/* Main Visual */}
-      <div className="flex flex-1 items-center justify-center py-2">
-        <MappingMonitor mapping={mapping} />
-      </div>
-
-      {/* Footer: Address/Label */}
-      <div className="flex items-center justify-between">
-        <span className="text-lg leading-none">
-          {GESTURE_EMOJIS[mapping.gesture]}
-        </span>
-
-        <div className="truncate text-center font-mono text-[10px] text-muted-foreground/70">
-          {mapping.mode}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MappingMonitor({ mapping }: { mapping: Mapping }) {
-  const { handData, activeGesture } = useHandStore(
-    useShallow((state) => ({
-      handData: state[mapping.hand].gestureData[mapping.gesture],
-      activeGesture: state[mapping.hand].gesture,
-    }))
-  );
-
-  const isActive = activeGesture === mapping.gesture;
-  // Use a damped value or direct value? Direct for now.
-  const value = handData?.y ?? 0; // For fader
-  const knobValue = handData?.rot ?? 0;
-
-  if (mapping.mode === "trigger") {
-    return (
-      <div
-        className={cn(
-          "flex h-16 w-16 items-center justify-center rounded-full border-4 transition-all duration-75",
-          isActive
-            ? "scale-95 border-primary bg-primary/20 shadow-[0_0_20px_rgba(var(--primary),0.5)]"
-            : "border-muted bg-muted/20"
-        )}
-      >
-        <div
-          className={cn(
-            "h-8 w-8 rounded-full transition-colors",
-            isActive ? "bg-primary" : "bg-muted-foreground/20"
-          )}
-        />
-      </div>
-    );
-  }
-
-  if (mapping.mode === "fader") {
-    // Fader: Vertical bar
-    const percentage = Math.max(0, Math.min(100, value * 100));
-    return (
-      <div className="relative h-24 w-8 overflow-hidden rounded-full bg-secondary/50">
-        <div
-          className="absolute bottom-0 w-full rounded-b-full bg-primary transition-all duration-75"
-          style={{ height: `${percentage}%` }}
-        />
-        {/* Thumb */}
-        {/* <div
-          className="absolute left-0 right-0 h-1 bg-white/50"
-          style={{ bottom: `${percentage}%` }}
-        /> */}
-      </div>
-    );
-  }
-
-  if (mapping.mode === "knob") {
-    // Knob: Circular progress or rotation
-    // -180 to 180 degrees approx
-    const rotation = clamp(knobValue * 300 - 150, -150, 150);
-    return (
-      <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-secondary bg-secondary/20">
-        {/* Indicator */}
-        <div
-          className="absolute h-full w-1 bg-primary/50 transition-transform duration-75"
-          style={{ transform: `rotate(${rotation}deg)` }}
-        >
-          <div className="absolute top-1 h-3 w-full rounded-full bg-primary" />
-        </div>
-
-        {/* Center Cap */}
-        <div className="z-10 flex h-12 w-12 items-center justify-center rounded-full bg-card font-mono text-[10px] shadow-sm">
-          {knobValue.toFixed(1)}
-        </div>
-      </div>
-    );
-  }
-
-  return null;
 }
