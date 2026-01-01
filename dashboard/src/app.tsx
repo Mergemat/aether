@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import logo from "./assets/logo.png";
 import { Mappings } from "./components/mappings";
 import { Spinner } from "./components/ui/spinner";
 import { useGestureRecognition } from "./hooks/use-gesture-recognition";
@@ -78,32 +79,39 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="relative mr-0 ml-auto aspect-video w-full max-w-150 bg-black">
-        {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/80">
-            <Spinner className="size-8" />
-            <p className="text-muted-foreground text-sm">{loadingProgress}</p>
-          </div>
-        )}
-        <video
-          autoPlay
-          className="absolute inset-0 h-full w-full -scale-x-100 object-cover opacity-70"
-          height={480}
-          muted
-          onLoadedData={startDetection}
-          playsInline
-          ref={videoRef}
-          width={640}
-        />
-        <canvas
-          className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100"
-          height={480}
-          ref={canvasRef}
-          width={640}
-        />
+    <div className="flex flex-1 flex-col gap-8 p-4 pt-8">
+      <div className="flex justify-center">
+        <img src={logo} alt="Logo" className="h-12" />
       </div>
-      <Mappings />
+      <div className="mx-auto w-full max-w-3xl">
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl border bg-black shadow-lg">
+          {isLoading && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black/80">
+              <Spinner className="size-8" />
+              <p className="text-muted-foreground text-sm">{loadingProgress}</p>
+            </div>
+          )}
+          <video
+            autoPlay
+            className="absolute inset-0 h-full w-full -scale-x-100 object-cover opacity-70"
+            height={480}
+            muted
+            onLoadedData={startDetection}
+            playsInline
+            ref={videoRef}
+            width={640}
+          />
+          <canvas
+            className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100"
+            height={480}
+            ref={canvasRef}
+            width={640}
+          />
+        </div>
+      </div>
+      <div className="mx-auto w-full max-w-7xl">
+        <Mappings />
+      </div>
     </div>
   );
 }
