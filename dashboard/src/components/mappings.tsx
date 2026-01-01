@@ -1,11 +1,25 @@
 import {
+  DndContext,
+  type DragEndEvent,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
   IconHandStop,
   IconPlus,
   IconSettings,
   IconTrash,
 } from "@tabler/icons-react";
-import { Reorder } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { clamp } from "@/lib/utils/clamp";
 import perfLogger from "@/lib/utils/logger";
 import { useHandStore } from "@/store/hand-store";
+import { useMappingsOrderStore } from "@/store/mappings-order-store";
 import { useMappingsStore } from "@/store/mappings-store";
 import type { Hand, Mapping, Mode } from "@/types";
 
@@ -34,18 +49,32 @@ export function Mappings() {
 
   const mappings = useMappingsStore((state) => state.mappings);
   const addMapping = useMappingsStore((state) => state.addMapping);
-  const reorderMappings = useMappingsStore((state) => state.reorderMappings);
 
-  // Local state for drag reordering - prevents store updates during drag
-  const [localMappings, setLocalMappings] = useState(mappings);
-  const isDragging = useRef(false);
+  const order = useMappingsOrderStore((state) => state.order);
+  const setOrder = useMappingsOrderStore((state) => state.setOrder);
 
-  // Sync local state when store changes (but not during drag)
+  // Sync order with mappings - add new ids, remove deleted ones
   useEffect(() => {
-    if (!isDragging.current) {
-      setLocalMappings(mappings);
+    const mappingIds = new Set(mappings.map((m) => m.id));
+    const orderSet = new Set(order);
+
+    // Find new ids not in order
+    const newIds = mappings.filter((m) => !orderSet.has(m.id)).map((m) => m.id);
+    // Filter out ids that no longer exist
+    const validOrder = order.filter((id) => mappingIds.has(id));
+
+    if (newIds.length > 0 || validOrder.length !== order.length) {
+      setOrder([...validOrder, ...newIds]);
     }
-  }, [mappings]);
+  }, [mappings, order, setOrder]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const onNewMapping = () => {
     addMapping({
@@ -56,16 +85,21 @@ export function Mappings() {
     });
   };
 
-  const handleReorder = (newOrder: Mapping[]) => {
-    isDragging.current = true;
-    setLocalMappings(newOrder);
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = order.indexOf(active.id as string);
+      const newIndex = order.indexOf(over.id as string);
+      setOrder(arrayMove(order, oldIndex, newIndex));
+    }
   };
 
-  const handleDragEnd = () => {
-    isDragging.current = false;
-    // Only update store when drag ends
-    reorderMappings(localMappings);
-  };
+  // Build ordered mappings from order array
+  const orderedMappings = useMemo(() => {
+    const mappingsMap = new Map(mappings.map((m) => [m.id, m]));
+    return order.map((id) => mappingsMap.get(id)).filter(Boolean) as Mapping[];
+  }, [mappings, order]);
 
   return (
     <div className="flex flex-col gap-4 p-4">
@@ -77,29 +111,48 @@ export function Mappings() {
         </Button>
       </div>
 
-      <Reorder.Group
-        axis="x"
-        className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8"
-        onReorder={handleReorder}
-        values={localMappings}
+      <DndContext
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
       >
-        {localMappings.map((mapping) => (
-          <Reorder.Item
-            className="relative"
-            drag
-            key={mapping.id}
-            onDragEnd={handleDragEnd}
-            value={mapping}
-          >
-            <MappingTile mapping={mapping} />
-          </Reorder.Item>
-        ))}
-        {localMappings.length === 0 && (
-          <div className="col-span-full flex h-32 items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground text-sm">
-            No mappings configured
+        <SortableContext items={order} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8">
+            {orderedMappings.map((mapping) => (
+              <SortableMappingTile key={mapping.id} mapping={mapping} />
+            ))}
+            {orderedMappings.length === 0 && (
+              <div className="col-span-full flex h-32 items-center justify-center rounded-xl border-2 border-dashed text-muted-foreground text-sm">
+                No mappings configured
+              </div>
+            )}
           </div>
-        )}
-      </Reorder.Group>
+        </SortableContext>
+      </DndContext>
+    </div>
+  );
+}
+
+function SortableMappingTile({ mapping }: { mapping: Mapping }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: mapping.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+    opacity: isDragging ? 0.8 : undefined,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <MappingTile mapping={mapping} />
     </div>
   );
 }
@@ -135,6 +188,7 @@ function MappingTile({ mapping }: { mapping: Mapping }) {
           <PopoverTrigger asChild>
             <Button
               className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+              onPointerDown={(e) => e.stopPropagation()}
               size="icon"
               variant="ghost"
             >
