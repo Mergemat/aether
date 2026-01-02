@@ -1,4 +1,5 @@
 import {
+  IconFocus2,
   IconGripVertical,
   IconHandStop,
   IconSettings,
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { GESTURE_EMOJIS, GESTURES } from "@/lib/constants";
 import { useMappingsStore } from "@/store/mappings-store";
 import type { Hand, Mapping, Mode } from "@/types";
@@ -59,10 +61,14 @@ function ConfigPopover({
   mapping,
   onUpdate,
   onDelete,
+  onIsolateToggle,
+  isIsolated,
 }: {
   mapping: Mapping;
   onUpdate: (name: keyof Mapping, value: string | boolean) => void;
   onDelete: () => void;
+  onIsolateToggle: () => void;
+  isIsolated: boolean;
 }) {
   return (
     <Popover>
@@ -85,10 +91,20 @@ function ConfigPopover({
             </PopoverDescription>
           </PopoverHeader>
           <ConfigFields mapping={mapping} onUpdate={onUpdate} />
-          <Button className="w-full" onClick={onDelete} variant="destructive">
-            <IconTrash className="mr-2 h-4 w-4" />
-            Delete Mapping
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={onIsolateToggle}
+              variant={isIsolated ? "default" : "secondary"}
+            >
+              <IconFocus2 className="mr-2 h-4 w-4" />
+              {isIsolated ? "Un-isolate" : "Isolate"}
+            </Button>
+            <Button className="flex-1" onClick={onDelete} variant="destructive">
+              <IconTrash className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
@@ -104,6 +120,16 @@ function ConfigFields({
 }) {
   return (
     <div className="grid gap-2">
+      <div className="grid grid-cols-3 items-center gap-4">
+        <Label htmlFor="enabled">Enabled</Label>
+        <div className="col-span-2 flex items-center">
+          <Switch
+            checked={mapping.enabled}
+            id="enabled"
+            onCheckedChange={(checked) => onUpdate("enabled", checked)}
+          />
+        </div>
+      </div>
       <div className="grid grid-cols-3 items-center gap-4">
         <span className="text-sm">Hand</span>
         <Select
@@ -171,17 +197,23 @@ function TileHeader({
   mapping,
   onUpdate,
   onDelete,
+  onIsolateToggle,
+  isIsolated,
 }: {
   mapping: Mapping;
   onUpdate: (name: keyof Mapping, value: string | boolean) => void;
   onDelete: () => void;
+  onIsolateToggle: () => void;
+  isIsolated: boolean;
 }) {
   return (
     <>
       <HandIndicator hand={mapping.hand} />
       <ConfigPopover
+        isIsolated={isIsolated}
         mapping={mapping}
         onDelete={onDelete}
+        onIsolateToggle={onIsolateToggle}
         onUpdate={onUpdate}
       />
     </>
@@ -216,11 +248,25 @@ export function MappingTile({
   mapping: Mapping;
   dragHandleProps?: DragHandleProps;
 }) {
-  const { updateMapping, deleteMapping } = useMappingsStore(
-    useShallow((state) => ({
-      updateMapping: state.updateMapping,
-      deleteMapping: state.deleteMapping,
-    }))
+  const {
+    updateMapping,
+    deleteMapping,
+    isolateMapping,
+    enableAllMappings,
+    isolated,
+  } = useMappingsStore(
+    useShallow((state) => {
+      const enabledMappings = state.mappings.filter((m) => m.enabled);
+      const isIsolated =
+        enabledMappings.length === 1 && enabledMappings[0].id === mapping.id;
+      return {
+        updateMapping: state.updateMapping,
+        deleteMapping: state.deleteMapping,
+        isolateMapping: state.isolateMapping,
+        enableAllMappings: state.enableAllMappings,
+        isolated: isIsolated,
+      };
+    })
   );
 
   const handleChange = (name: keyof Mapping, value: string | boolean) => {
@@ -231,11 +277,23 @@ export function MappingTile({
     deleteMapping(mapping.id);
   };
 
+  const handleIsolateToggle = () => {
+    if (isolated) {
+      enableAllMappings();
+    } else {
+      isolateMapping(mapping.id);
+    }
+  };
+
   return (
-    <div className="group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-2xl border bg-card p-2 shadow-sm transition-all hover:shadow-md">
+    <div
+      className={`group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-2xl border bg-card p-2 shadow-sm transition-all hover:shadow-md ${mapping.enabled ? "" : "opacity-50"}`}
+    >
       <TileHeader
+        isIsolated={isolated}
         mapping={mapping}
         onDelete={handleDelete}
+        onIsolateToggle={handleIsolateToggle}
         onUpdate={handleChange}
       />
       <div className="flex flex-1 items-center justify-center">
