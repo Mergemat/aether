@@ -174,3 +174,12 @@ dist
 # Finder (MacOS) folder config
 .DS_Store
 
+# Electron build outputs
+release/
+dist-electron/
+*.dmg
+*.exe
+*.AppImage
+*.snap
+*.deb
+*.rpm

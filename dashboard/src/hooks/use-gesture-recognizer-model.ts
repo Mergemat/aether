@@ -42,19 +42,34 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
 
       setLoadingProgress("Loading gesture recognizer model...");
 
-      const instance = await GestureRecognizer.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: MODEL_URL,
-          delegate: "GPU",
-        },
-        cannedGesturesClassifierOptions: {
-          scoreThreshold: 0.5,
-          categoryDenylist: ["Thumb_Up", "Thumb_Down"],
-        },
-        minHandDetectionConfidence: 0.9,
-        runningMode: "VIDEO",
-        numHands: 2,
-      });
+      const createRecognizer = (delegate: "GPU" | "CPU") => {
+        return GestureRecognizer.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath: MODEL_URL,
+            delegate,
+          },
+          cannedGesturesClassifierOptions: {
+            scoreThreshold: 0.5,
+            categoryDenylist: ["Thumb_Up", "Thumb_Down"],
+          },
+          minHandDetectionConfidence: 0.9,
+          runningMode: "VIDEO",
+          numHands: 2,
+        });
+      };
+
+      let instance: GestureRecognizer;
+      try {
+        instance = await createRecognizer("GPU");
+        perfLogger.event("useGestureRecognizerModel", "initialized with GPU");
+      } catch (gpuError) {
+        perfLogger.event(
+          "useGestureRecognizerModel",
+          `GPU init failed, falling back to CPU: ${gpuError}`
+        );
+        instance = await createRecognizer("CPU");
+        perfLogger.event("useGestureRecognizerModel", "initialized with CPU fallback");
+      }
 
       if (!mounted) {
         perfLogger.event(
