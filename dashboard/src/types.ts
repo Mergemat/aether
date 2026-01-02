@@ -1,7 +1,7 @@
 import type { GESTURES } from "./lib/constants";
 
 export type Hand = "left" | "right";
-export type Mode = "trigger" | "fader" | "knob";
+export type Mode = "trigger" | "fader" | "knob" | "switch";
 
 export interface HandData {
   y: number;

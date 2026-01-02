@@ -16,7 +16,7 @@ interface HandStreamerState {
   client: WebSocketClient | null;
   status: ConnectionStatus;
   isStreaming: boolean;
-  lastSentValues: Map<string, number>;
+  lastSentValues: Map<string, { value: number; switchState?: boolean }>;
 }
 
 interface HandStreamerActions {
@@ -131,44 +131,65 @@ export const useHandStreamerStore = create<HandStreamerStore>()(
 function buildMessageForMapping(
   mapping: Mapping,
   data: GestureHandData,
-  lastSentValues: Map<string, number>,
+  lastSentValues: Map<string, { value: number; switchState?: boolean }>,
   valueThreshold: number
 ): HandDataMessage | null {
   const gestureMatched = data.gesture === mapping.gesture;
+  const lastEntry = lastSentValues.get(mapping.address);
 
-  // For trigger mode, send 1 when gesture matches, 0 otherwise
+  // SWITCH MODE: toggle on gesture activation (rising edge)
+  if (mapping.mode === "switch") {
+    const wasActive = lastEntry?.value === 1;
+
+    // Rising edge: gesture just became active → toggle
+    if (gestureMatched && !wasActive) {
+      const newSwitchState = !(lastEntry?.switchState ?? false);
+      lastSentValues.set(mapping.address, { value: 1, switchState: newSwitchState });
+      return { address: mapping.address, value: newSwitchState ? 1 : 0 };
+    }
+
+    // Falling edge: gesture deactivated → update tracking only
+    if (!gestureMatched && wasActive) {
+      lastSentValues.set(mapping.address, {
+        value: 0,
+        switchState: lastEntry?.switchState ?? false,
+      });
+    }
+
+    return null;
+  }
+
+  // TRIGGER MODE: send 1 when gesture matches, 0 otherwise
   if (mapping.mode === "trigger") {
     const value = gestureMatched ? 1 : 0;
-    const lastValue = lastSentValues.get(mapping.address);
-    if (lastValue === value) {
+    if (lastEntry?.value === value) {
       return null;
     }
-    lastSentValues.set(mapping.address, value);
+    lastSentValues.set(mapping.address, { value });
     return { address: mapping.address, value };
   }
 
-  // For fader/knob modes, only process when gesture matches
+  // FADER/KNOB MODES: only process when gesture matches
   if (!gestureMatched) {
     return null;
   }
 
   const value = mapping.mode === "fader" ? data.y : data.rot;
-  const lastValue = lastSentValues.get(mapping.address);
   const hasSignificantChange =
-    lastValue === undefined || Math.abs(value - lastValue) >= valueThreshold;
+    lastEntry?.value === undefined || Math.abs(value - lastEntry.value) >= valueThreshold;
 
   if (!hasSignificantChange) {
     return null;
   }
 
-  lastSentValues.set(mapping.address, value);
+  lastSentValues.set(mapping.address, { value });
   return { address: mapping.address, value };
 }
 
 function buildMessages(
   handData: { left: GestureHandData; right: GestureHandData },
   mappings: Mapping[],
-  lastSentValues: Map<string, number>,
+  lastSentValues: Map<string, { value: number; switchState?: boolean }>,
   valueThreshold: number
 ): HandDataMessage[] {
   const messages: HandDataMessage[] = [];
