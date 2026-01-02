@@ -18,6 +18,10 @@ interface MappingsState {
   deleteMapping: (id: string) => void;
   updateMapping: (id: string, updates: Partial<Mapping>) => void;
   reorderMappings: (mappings: Mapping[]) => void;
+  /** Isolate a mapping by disabling all others */
+  isolateMapping: (id: string) => void;
+  /** Enable all mappings (un-isolate) */
+  enableAllMappings: () => void;
 }
 
 export const useMappingsStore = create<MappingsState>()(
@@ -80,6 +84,28 @@ export const useMappingsStore = create<MappingsState>()(
         };
         updated.address = `/${updated.hand}/${getGestureIndex(updated.gesture)}/${updated.mode}`;
         set({ mappings: mappings.map((m) => (m.id === id ? updated : m)) });
+      },
+
+      isolateMapping: (id: string) => {
+        perfLogger.storeUpdate("mappings-store", "isolateMapping", { id });
+        const mappings = get().mappings;
+        set({
+          mappings: mappings.map((m) => ({
+            ...m,
+            enabled: m.id === id,
+          })),
+        });
+      },
+
+      enableAllMappings: () => {
+        perfLogger.storeUpdate("mappings-store", "enableAllMappings", {});
+        const mappings = get().mappings;
+        set({
+          mappings: mappings.map((m) => ({
+            ...m,
+            enabled: true,
+          })),
+        });
       },
     }),
     {
