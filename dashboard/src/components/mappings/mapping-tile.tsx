@@ -177,6 +177,7 @@ function ConfigFields({
             <SelectItem value="trigger">Trigger</SelectItem>
             <SelectItem value="fader">Fader</SelectItem>
             <SelectItem value="knob">Knob</SelectItem>
+            <SelectItem value="switch">Switch</SelectItem>
           </SelectContent>
         </Select>
       </div>

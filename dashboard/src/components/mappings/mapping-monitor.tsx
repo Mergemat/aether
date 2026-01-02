@@ -2,6 +2,7 @@ import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
 import { clamp } from "@/lib/utils/clamp";
 import { useHandStore } from "@/store/hand-store";
+import { useHandStreamerStore } from "@/store/hand-streamer-store";
 import type { Mapping } from "@/types";
 
 export function MappingMonitor({ mapping }: { mapping: Mapping }) {
@@ -12,9 +13,33 @@ export function MappingMonitor({ mapping }: { mapping: Mapping }) {
     }))
   );
 
+  const switchState = useHandStreamerStore(
+    (state) => state.lastSentValues.get(mapping.address)?.switchState ?? false
+  );
+
   const isActive = activeGesture === mapping.gesture;
   const value = handData?.y ?? 0;
   const knobValue = handData?.rot ?? 0;
+
+  if (mapping.mode === "switch") {
+    return (
+      <div
+        className={cn(
+          "flex h-20 w-20 items-center justify-center rounded-full border-4 transition-all",
+          switchState
+            ? "border-primary bg-primary/20"
+            : "border-muted bg-muted/20"
+        )}
+      >
+        <div
+          className={cn(
+            "h-10 w-10 rounded-full transition-colors",
+            switchState ? "bg-primary" : "bg-muted-foreground/20"
+          )}
+        />
+      </div>
+    );
+  }
 
   if (mapping.mode === "trigger") {
     return (
