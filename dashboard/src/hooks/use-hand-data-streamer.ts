@@ -1,4 +1,5 @@
 import { useCallback, useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
 
 import perfLogger from "@/lib/utils/logger";
 import { useHandStreamerStore } from "@/store/hand-streamer-store";
@@ -22,7 +23,14 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
     stop: storeStop,
     sendHandData: storeSendHandData,
     cleanupStaleEntries,
-  } = useHandStreamerStore();
+  } = useHandStreamerStore(
+    useShallow((state) => ({
+      start: state.start,
+      stop: state.stop,
+      sendHandData: state.sendHandData,
+      cleanupStaleEntries: state.cleanupStaleEntries,
+    }))
+  );
 
   // Clean up stale entries when mappings change
   useEffect(() => {

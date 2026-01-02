@@ -31,11 +31,6 @@ export const useHandStore = create<RecognitionStore>((set) => ({
       const prev = state[side];
       const { y, rot } = data;
 
-      // Early return if nothing changed
-      if (prev.gesture === gesture && prev.y === y && prev.rot === rot) {
-        return state;
-      }
-
       // Check if gestureData for this gesture actually changed
       const existingGestureData = prev.gestureData[gesture];
       const gestureDataChanged =
@@ -43,11 +38,17 @@ export const useHandStore = create<RecognitionStore>((set) => ({
         existingGestureData.y !== y ||
         existingGestureData.rot !== rot;
 
+      // Early return if nothing changed at all
+      if (prev.gesture === gesture && !gestureDataChanged) {
+        return state;
+      }
+
       return {
         [side]: {
           ...prev,
           gesture,
-          ...data,
+          y,
+          rot,
           // Only create new gestureData object if the data actually changed
           gestureData: gestureDataChanged
             ? { ...prev.gestureData, [gesture]: data }
