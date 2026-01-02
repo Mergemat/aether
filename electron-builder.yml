@@ -1,0 +1,63 @@
+appId: com.aether.app
+productName: Aether
+copyright: Copyright © 2025
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**/*
+  - "!node_modules/**/*"
+  - node_modules/node-osc/**/*
+  - node_modules/ws/**/*
+  - node_modules/osc-min/**/*
+  - node_modules/lru-cache/**/*
+
+# macOS configuration
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: build/icon.icns
+  category: public.app-category.music
+  darkModeSupport: true
+  hardenedRuntime: false
+  gatekeeperAssess: false
+
+dmg:
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+  window:
+    width: 540
+    height: 380
+
+# Windows configuration
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+# Auto-update via GitHub Releases
+publish:
+  provider: github
+  owner: Mergemat
+  repo: aether
+  releaseType: release
