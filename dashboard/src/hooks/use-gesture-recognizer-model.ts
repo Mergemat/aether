@@ -51,8 +51,7 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
           scoreThreshold: 0.5,
           categoryDenylist: ["Thumb_Up", "Thumb_Down"],
         },
-        minTrackingConfidence: 0.6,
-        minHandDetectionConfidence: 0.6,
+        minHandDetectionConfidence: 0.9,
         runningMode: "VIDEO",
         numHands: 2,
       });
