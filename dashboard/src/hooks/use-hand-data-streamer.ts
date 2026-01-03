@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 
-import perfLogger from "@/lib/utils/logger";
 import { useHandStreamerStore } from "@/store/hand-streamer-store";
 import { useMappingsStore } from "@/store/mappings-store";
 import type { GestureHandData } from "@/types";
@@ -13,8 +12,6 @@ interface HandDataStreamerConfig {
 }
 
 export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
-  perfLogger.hookInit("useHandDataStreamer", config);
-
   const { wsUrl, valueThreshold = 0.001, onStatusChange } = config;
 
   const mappings = useMappingsStore((state) => state.mappings);
@@ -55,10 +52,7 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
 
   // Cleanup on unmount
   useEffect(() => {
-    return () => {
-      perfLogger.hookCleanup("useHandDataStreamer");
-      storeStop();
-    };
+    return () => storeStop();
   }, [storeStop]);
 
   return { start, stop, sendHandData };

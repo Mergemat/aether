@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
-import perfLogger from "@/lib/utils/logger";
 import { WebSocketClient } from "@/services/websocket-client";
 import type { GestureHandData, Mapping } from "@/types";
 
@@ -42,27 +41,21 @@ export const useHandStreamerStore = create<HandStreamerStore>()(
     start: (wsUrl, onStatusChange) => {
       const state = get();
       if (state.isStreaming) {
-        perfLogger.event("hand-streamer-store", "start skipped - already streaming");
         return;
       }
-
-      perfLogger.event("hand-streamer-store | start called", { url: wsUrl });
 
       const client = new WebSocketClient(
         { url: wsUrl },
         {
           onOpen: () => {
-            perfLogger.websocket("connected", { url: wsUrl });
             set({ status: "connected", lastSentValues: new Map() });
             onStatusChange?.("connected");
           },
           onClose: () => {
-            perfLogger.websocket("disconnected", { url: wsUrl });
             set({ status: "disconnected" });
             onStatusChange?.("disconnected");
           },
           onError: () => {
-            perfLogger.websocket("error", { url: wsUrl });
             set({ status: "error" });
             onStatusChange?.("error");
           },
@@ -74,7 +67,6 @@ export const useHandStreamerStore = create<HandStreamerStore>()(
     },
 
     stop: () => {
-      perfLogger.event("hand-streamer-store", "stop called");
       const { client } = get();
 
       if (client) {
@@ -91,13 +83,7 @@ export const useHandStreamerStore = create<HandStreamerStore>()(
     sendHandData: (handData, mappings, valueThreshold = 0.001) => {
       const { client, lastSentValues } = get();
 
-      if (!client) {
-        perfLogger.event("hand-streamer-store", "sendHandData skipped - no client");
-        return;
-      }
-
-      if (!client.isConnected()) {
-        perfLogger.event("hand-streamer-store", "sendHandData skipped - not connected");
+      if (!client || !client.isConnected()) {
         return;
       }
 

@@ -12,7 +12,6 @@ import {
   SortableContext,
 } from "@dnd-kit/sortable";
 import { useEffect, useMemo } from "react";
-import perfLogger from "@/lib/utils/logger";
 import { useMappingsOrderStore } from "@/store/mappings-order-store";
 import { useMappingsStore } from "@/store/mappings-store";
 import type { Mapping } from "@/types";
@@ -21,8 +20,6 @@ import { SortableMappingTile } from "./mappings/sortable-mapping-tile";
 import { Separator } from "./ui/separator";
 
 export function Mappings() {
-  perfLogger.componentRender("Mappings");
-
   const mappings = useMappingsStore((state) => state.mappings);
   const addMapping = useMappingsStore((state) => state.addMapping);
 

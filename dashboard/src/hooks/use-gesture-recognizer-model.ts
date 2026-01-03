@@ -1,6 +1,5 @@
 import { FilesetResolver, GestureRecognizer } from "@mediapipe/tasks-vision";
 import { useEffect, useRef, useState } from "react";
-import perfLogger from "@/lib/utils/logger";
 
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/gesture_recognizer/gesture_recognizer/float16/1/gesture_recognizer.task";
@@ -27,16 +26,11 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
     let mounted = true;
 
     const initRecognizer = async () => {
-      perfLogger.event("useGestureRecognizerModel", "init started");
       setLoadingProgress("Loading MediaPipe WASM...");
 
       const vision = await FilesetResolver.forVisionTasks(WASM_URL);
 
       if (!mounted) {
-        perfLogger.event(
-          "useGestureRecognizerModel",
-          "aborted - unmounted during WASM load"
-        );
         return;
       }
 
@@ -61,34 +55,22 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
       let instance: GestureRecognizer;
       try {
         instance = await createRecognizer("GPU");
-        perfLogger.event("useGestureRecognizerModel", "initialized with GPU");
-      } catch (gpuError) {
-        perfLogger.event(
-          "useGestureRecognizerModel",
-          `GPU init failed, falling back to CPU: ${gpuError}`
-        );
+      } catch {
         instance = await createRecognizer("CPU");
-        perfLogger.event("useGestureRecognizerModel", "initialized with CPU fallback");
       }
 
       if (!mounted) {
-        perfLogger.event(
-          "useGestureRecognizerModel",
-          "aborted - unmounted during model load, closing instance"
-        );
         instance.close();
         return;
       }
 
       recognizerRef.current = instance;
-      setRecognizer(instance); // Trigger re-render with actual recognizer
+      setRecognizer(instance);
       setIsLoading(false);
-      perfLogger.event("useGestureRecognizerModel", "init complete");
     };
 
     initRecognizer().catch((err) => {
       const message = err instanceof Error ? err.message : "Unknown error";
-      perfLogger.event("useGestureRecognizerModel", `init failed: ${message}`);
       if (mounted) {
         setError(message || "Failed to initialize recognizer");
         setIsLoading(false);
@@ -97,12 +79,10 @@ export function useGestureRecognizerModel(): UseGestureRecognizerModelReturn {
 
     return () => {
       mounted = false;
-      perfLogger.hookCleanup("useGestureRecognizerModel");
 
       if (recognizerRef.current) {
         recognizerRef.current.close();
         recognizerRef.current = null;
-        perfLogger.event("useGestureRecognizerModel", "recognizer closed");
       }
     };
   }, []);

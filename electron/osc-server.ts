@@ -71,8 +71,6 @@ export function startOscServer(): void {
   });
 
   wsServer.on("connection", (ws: WebSocket) => {
-    console.log("[OSC Server] Client connected");
-
     ws.on("message", (msg: Buffer | ArrayBuffer | string) => {
       // Binary protocol (Buffer) - minimal latency path
       if (Buffer.isBuffer(msg)) {
@@ -99,12 +97,6 @@ export function startOscServer(): void {
           console.error("[OSC Server] Malformed message received");
         }
       }
-    });
-
-    ws.on("close", (code: number, reason: Buffer) => {
-      console.log(
-        `[OSC Server] Disconnected. Code: ${code}, Reason: ${reason.toString() || "No reason"}`
-      );
     });
 
     ws.on("error", (err: Error) => {

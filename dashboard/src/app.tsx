@@ -6,10 +6,8 @@ import { Spinner } from "./components/ui/spinner";
 import { useGestureRecognition } from "./hooks/use-gesture-recognition";
 import { useHandDataStreamer } from "./hooks/use-hand-data-streamer";
 import { useWebcam } from "./hooks/use-webcam";
-import perfLogger from "./lib/utils/logger";
 
 export default function App() {
-  perfLogger.componentRender("App");
 
   const { videoRef, error } = useWebcam();
 
@@ -36,20 +34,12 @@ export default function App() {
   });
 
   useEffect(() => {
-    perfLogger.effect("App", 1, ["startStreamer"]);
     startStreamer();
-
-    return () => {
-      perfLogger.effectCleanup("App", 1);
-      stopStreamer();
-    };
+    return () => stopStreamer();
   }, [startStreamer, stopStreamer]);
 
   useEffect(() => {
-    return () => {
-      perfLogger.effectCleanup("App", 2);
-      stopDetection();
-    };
+    return () => stopDetection();
   }, [stopDetection]);
 
   if (error) {
