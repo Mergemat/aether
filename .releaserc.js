@@ -49,13 +49,19 @@ module.exports = {
     ],
     // Update package.json version and commit changes
     [
-      '@semantic-release/git',
+      '@semantic-release/npm',
       {
-        assets: ['CHANGELOG.md', 'package.json'],
-        message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
+        npmPublish: false, // Only update package.json version
       },
     ],
-    // Create GitHub release
+    [
+      '@semantic-release/git',
+      {
+        assets: ['CHANGELOG.md', 'package.json', 'package-lock.json', 'bun.lockb'],
+        message: 'chore(release): ${nextRelease.version}\n\n${nextRelease.notes}',
+      },
+    ],
+    // Create GitHub release (this also pushes the tag)
     '@semantic-release/github',
   ],
 };
