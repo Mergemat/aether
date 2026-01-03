@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+# Prevent concurrent releases
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          extra_plugins: |
+            @semantic-release/changelog
+            @semantic-release/git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Publish (macOS)
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: bun run build && bunx electron-builder --mac --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release-windows:
+    needs: release
+    runs-on: windows-latest
+    if: needs.release.outputs.new_release_published == 'true'
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Get latest release tag
+        id: get_tag
+        shell: bash
+        run: |
+          git fetch --tags
+          TAG=$(git describe --tags --abbrev=0)
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build and Publish (Windows)
+        run: bun run build && bunx electron-builder --win --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
