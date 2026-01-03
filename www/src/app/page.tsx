@@ -1,120 +1,114 @@
+import Image from "next/image";
 
-function AppPreview() {
+function Container({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative mx-auto w-full max-w-4xl rounded-xl border border-zinc-200 bg-zinc-50 p-2 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="aspect-[16/9] w-full overflow-hidden rounded-lg bg-zinc-900 shadow-inner relative">
-        <svg
-          className="h-full w-full opacity-50"
-          viewBox="0 0 800 450"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-labelledby="app-preview-title"
-          role="img"
-        >
-          <title id="app-preview-title">Aether Application Interface Preview</title>
-          <rect width="800" height="450" fill="#18181b" />
-          <circle cx="400" cy="225" r="80" stroke="#52525b" strokeWidth="2" />
-          <path d="M350 225H450" stroke="#52525b" strokeWidth="2" />
-          <path d="M400 175V275" stroke="#52525b" strokeWidth="2" />
-          {/* Mock UI elements */}
-          <rect x="50" y="50" width="100" height="350" rx="8" fill="#27272a" />
-          <rect x="650" y="50" width="100" height="350" rx="8" fill="#27272a" />
-          <rect x="200" y="350" width="400" height="50" rx="8" fill="#27272a" />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-           <span className="text-zinc-500 font-mono text-sm">App Interface Preview</span>
-        </div>
-      </div>
-    </div>
+    <div className="mx-auto w-full max-w-7xl px-6 md:px-12">{children}</div>
   );
 }
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col bg-white text-zinc-900 dark:bg-black dark:text-zinc-100">
-      <header className="flex w-full items-center justify-between px-6 py-6 md:px-12">
-        <div className="text-xl font-bold tracking-tighter">Aether</div>
-        <nav className="flex gap-6 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-          <a href="#features" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">Features</a>
-          <a href="#download" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">Download</a>
-          <a href="https://github.com/bagautdin/aether" className="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors">GitHub</a>
-        </nav>
+    <div
+      id="top"
+      className="relative min-h-screen bg-background text-foreground selection:bg-primary/20"
+    >
+      <header className="sticky top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <Container>
+          <div className="flex h-16 items-center justify-between">
+            <a
+              href="#top"
+              className="flex items-center gap-3 transition hover:opacity-80"
+            >
+              <div className="flex h-8 w-8 items-center justify-center">
+                <Image
+                  src="/icon.svg"
+                  alt="Aether Logo"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8"
+                />
+              </div>
+              <div className="font-semibold text-lg tracking-tight">Aether</div>
+            </a>
+
+            <div className="flex items-center gap-4">
+              <a
+                className="hidden sm:inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:text-foreground text-muted-foreground"
+                href="https://github.com/Mergemat/aether"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </a>
+              <a
+                href="https://github.com/Mergemat/aether/releases"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                Download
+              </a>
+            </div>
+          </div>
+        </Container>
       </header>
 
-      <main className="flex flex-1 flex-col items-center">
-        {/* Hero Section */}
-        <section className="flex w-full max-w-5xl flex-col items-center px-6 py-24 text-center md:py-32">
-          <h1 className="mb-6 text-4xl font-extrabold tracking-tight sm:text-6xl md:text-7xl">
-            Control your DAW <br className="hidden sm:block" />
-            <span className="bg-gradient-to-r from-zinc-500 to-zinc-900 bg-clip-text text-transparent dark:from-zinc-100 dark:to-zinc-500">
-              with gestures.
-            </span>
-          </h1>
-          <p className="mb-10 max-w-2xl text-lg text-zinc-600 dark:text-zinc-400 sm:text-xl">
-            Aether redefines music production workflow. Use intuitive hand gestures to control faders, automation, and effects in real-time.
-          </p>
-          
-          <div className="flex flex-col gap-4 sm:flex-row" id="download">
-            <a
-              href="#download-mac"
-              className="inline-flex h-12 items-center justify-center rounded-full bg-zinc-900 px-8 text-sm font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
-            >
-              Download for Mac
-            </a>
-            <a
-              href="#download-win"
-              className="inline-flex h-12 items-center justify-center rounded-full border border-zinc-200 bg-transparent px-8 text-sm font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-900"
-            >
-              Download for Windows
-            </a>
-          </div>
-        </section>
+      <main>
+        <section className="pt-20 pb-32 lg:pt-32">
+          <Container>
+            <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
+              <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-6">
+                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs font-medium text-secondary-foreground backdrop-blur-sm">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Open Source & Free
+                  </div>
 
-        {/* Preview Section */}
-        <section className="w-full px-6 pb-24">
-          <AppPreview />
-        </section>
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl lg:leading-[1.1]">
+                    Control your DAW with{" "}
+                    <span className="text-primary">gestures</span>
+                  </h1>
 
-        {/* Features Section */}
-        <section id="features" className="grid w-full max-w-5xl grid-cols-1 gap-12 px-6 py-24 sm:grid-cols-3">
-          <div className="space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900">
-              <svg className="h-5 w-5 text-zinc-900 dark:text-zinc-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11" />
-              </svg>
+                  <p className="max-w-xl text-lg text-muted-foreground leading-relaxed">
+                    Turn gestures into OSC messages. Control faders, macros, and
+                    effects in your DAW.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4 sm:flex-row" id="download">
+                  <a
+                    href="https://github.com/Mergemat/aether/releases"
+                    className="inline-flex h-12 items-center justify-center rounded-lg bg-foreground px-8 text-sm font-medium text-background transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  >
+                    Download for macOS
+                  </a>
+                </div>
+              </div>
+
+              <div className="relative lg:ml-auto w-full max-w-xl lg:max-w-none">
+                <div className="relative rounded-xl border border-border bg-card shadow-2xl overflow-hidden">
+                  <div className="absolute top-0 left-0 right-0 h-11 bg-muted/50 border-b border-border flex items-center px-4 gap-2">
+                    <div className="h-3 w-3 rounded-full bg-red-500/20 border border-red-500/50" />
+                    <div className="h-3 w-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
+                    <div className="h-3 w-3 rounded-full bg-green-500/20 border border-green-500/50" />
+                  </div>
+                  <div className="mt-11">
+                    <Image
+                      src="/main.png"
+                      alt="Aether dashboard interface showing hand tracking and gesture mapping"
+                      width={1458}
+                      height={1000}
+                    />
+                  </div>
+                </div>
+                {/* Decorative background element behind image */}
+                <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/20 via-primary/5 to-transparent blur-2xl opacity-50" />
+              </div>
             </div>
-            <h3 className="text-xl font-semibold">Gesture Control</h3>
-            <p className="text-zinc-600 dark:text-zinc-400">Map hand movements to any MIDI or OSC parameter in your DAW.</p>
-          </div>
-          <div className="space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900">
-              <svg className="h-5 w-5 text-zinc-900 dark:text-zinc-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold">Fast & Responsive</h3>
-            <p className="text-zinc-600 dark:text-zinc-400">Built with Rust and Electron for low-latency performance essential for live use.</p>
-          </div>
-          <div className="space-y-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-900">
-              <svg className="h-5 w-5 text-zinc-900 dark:text-zinc-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold">Customizable</h3>
-            <p className="text-zinc-600 dark:text-zinc-400">Create your own gesture presets and share them with the community.</p>
-          </div>
+          </Container>
         </section>
       </main>
-
-      <footer className="border-t border-zinc-200 py-12 dark:border-zinc-800">
-        <div className="container mx-auto flex flex-col items-center justify-between gap-6 px-6 sm:flex-row">
-          <p className="text-sm text-zinc-500">
-            &copy; {new Date().getFullYear()} Aether. Open Source.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }
