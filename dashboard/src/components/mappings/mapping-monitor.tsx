@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
 import { clamp } from "@/lib/utils/clamp";
 import { useHandStore } from "@/store/hand-store";
+import { useSwitchState } from "@/store/switch-state-store";
 import type { Mapping } from "@/types";
 
 export function MappingMonitor({ mapping }: { mapping: Mapping }) {
@@ -21,24 +21,12 @@ export function MappingMonitor({ mapping }: { mapping: Mapping }) {
 }
 
 function SwitchMonitor({ mapping }: { mapping: Mapping }) {
-  const isGestureActive = useHandStore(
-    (state) => state[mapping.hand].gesture === mapping.gesture
-  );
-  const [switchState, setSwitchState] = useState(false);
-  const wasActiveRef = useRef(false);
-
-  useEffect(() => {
-    // Rising edge: gesture just became active -> toggle
-    if (isGestureActive && !wasActiveRef.current) {
-      setSwitchState((prev) => !prev);
-    }
-    wasActiveRef.current = isGestureActive;
-  }, [isGestureActive]);
+  const switchState = useSwitchState(mapping.hand, mapping.gesture);
 
   return (
     <div
       className={cn(
-        "flex h-20 w-20 items-center justify-center rounded-full border-4 transition-all",
+        "flex h-20 w-20 items-center justify-center rounded-xl border-4 transition-all",
         switchState
           ? "border-primary bg-primary/20"
           : "border-muted bg-muted/20"
@@ -46,7 +34,7 @@ function SwitchMonitor({ mapping }: { mapping: Mapping }) {
     >
       <div
         className={cn(
-          "h-10 w-10 rounded-full transition-colors",
+          "h-10 w-10 rounded-xl transition-colors",
           switchState ? "bg-primary" : "bg-muted-foreground/20"
         )}
       />
