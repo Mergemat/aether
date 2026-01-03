@@ -1,3 +1,9 @@
+## [0.2.1](https://github.com/Mergemat/aether/compare/v0.2.0...v0.2.1) (2026-01-03)
+
+### Refactoring
+
+* remove performance logger and redundant console logs ([18b442c](https://github.com/Mergemat/aether/commit/18b442c7cce638a36f8a963e59793def80dc1afb))
+
 ## [0.2.0](https://github.com/Mergemat/aether/compare/v0.1.1...v0.2.0) (2026-01-03)
 
 ### Features
