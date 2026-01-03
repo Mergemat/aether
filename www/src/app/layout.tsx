@@ -14,7 +14,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Aether - Gesture Control for DAW",
-  description: "Control your DAW with gestures. The modern way to interact with your music production software.",
+  description:
+    "Control your DAW with gestures. The modern way to interact with your music production software.",
   icons: {
     icon: "/icon.svg",
   },
