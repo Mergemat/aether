@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { DownloadButton } from "@/components/DownloadButton";
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -40,12 +41,7 @@ export default function Home() {
               >
                 GitHub
               </a>
-              <a
-                href="https://github.com/Mergemat/aether/releases"
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                Download
-              </a>
+              <DownloadButton variant="secondary" />
             </div>
           </div>
         </Container>
@@ -77,12 +73,7 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col gap-4 sm:flex-row" id="download">
-                  <a
-                    href="https://github.com/Mergemat/aether/releases"
-                    className="inline-flex h-12 items-center justify-center rounded-lg bg-foreground px-8 text-sm font-medium text-background transition-colors hover:bg-foreground/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  >
-                    Download for macOS
-                  </a>
+                  <DownloadButton />
                 </div>
               </div>
 
