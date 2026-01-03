@@ -2,7 +2,7 @@
 
 Control your DAW with hand gestures.
 
-![Aether Interface Placeholder](https://via.placeholder.com/1200x800.png?text=Aether+Interface+Preview)
+![Aether Interface Placeholder](/media/main.png)
 
 Aether is a desktop application that uses computer vision to track your hand movements and translate them into OSC (Open Sound Control) messages, allowing you to control music software like Ableton Live, Bitwig, or Logic Pro without touching your computer.
 
