@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { GESTURE_EMOJIS, GESTURES } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import { useMappingsStore } from "@/store/mappings-store";
 import type { Hand, Mapping, Mode } from "@/types";
 import { Label } from "../ui/label";
@@ -235,7 +236,12 @@ function TileFooter({
       ) : (
         <div />
       )}
-      <span className="absolute right-2 bottom-2 text-lg leading-none">
+      <span
+        className={cn(
+          "absolute right-2 bottom-2 text-lg leading-none",
+          mapping.hand === "right" ? "scale-x-[-1]" : ""
+        )}
+      >
         {GESTURE_EMOJIS[mapping.gesture]}
       </span>
     </>
