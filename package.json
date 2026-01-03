@@ -1,12 +1,15 @@
 {
   "name": "aether",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Controll your DAW with gestures",
   "author": "Mergemat",
   "license": "MIT",
   "private": true,
   "main": "out/main/index.js",
-  "workspaces": ["cli", "dashboard"],
+  "workspaces": [
+    "cli",
+    "dashboard"
+  ],
   "scripts": {
     "dev": "electron-vite dev",
     "dev:cli": "bun run --filter 'cli' dev",
@@ -17,7 +20,8 @@
     "dist:mac": "electron-vite build && electron-builder --mac",
     "dist:win": "electron-vite build && electron-builder --win",
     "release": "electron-vite build && electron-builder --publish always",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "release:local": "semantic-release --no-ci"
   },
   "devDependencies": {
     "@semantic-release/changelog": "^6.0.3",
