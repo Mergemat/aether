@@ -1,3 +1,9 @@
+## [0.2.2](https://github.com/Mergemat/aether/compare/v0.2.1...v0.2.2) (2026-01-03)
+
+### Bug Fixes
+
+* **build:** regenerate valid icon.ico and icon.icns to fix CI build failure ([d7fa96c](https://github.com/Mergemat/aether/commit/d7fa96c592e2a6956db44467c1fe3264744df136))
+
 ## [0.2.1](https://github.com/Mergemat/aether/compare/v0.2.0...v0.2.1) (2026-01-03)
 
 ### Refactoring
