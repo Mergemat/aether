@@ -60,9 +60,6 @@ Bun.serve({
 		return new Response("Not a WebSocket request", { status: 400 });
 	},
 	websocket: {
-		open(ws) {
-			console.log("Client connected");
-		},
 		message(ws, msg) {
 			// Binary protocol (ArrayBuffer/Buffer) - minimal latency path
 			if (msg instanceof Buffer || msg instanceof ArrayBuffer) {
@@ -80,13 +77,6 @@ Bun.serve({
 			} catch (e) {
 				console.error("Malformed message received");
 			}
-		},
-		close(ws, code, message) {
-			// Code 1001 = Tab refreshed/closed
-			// Code 1006 = Abnormal (network/crash)
-			console.log(
-				`Disconnected. Code: ${code}, Reason: ${message || "No reason"}`,
-			);
 		},
 	},
 });

@@ -2,7 +2,6 @@ import type { GestureRecognizerResult } from "@mediapipe/tasks-vision";
 import { useCallback, useRef } from "react";
 import { drawHandResults } from "@/lib/utils/hand-drawer";
 import { processHandLandmarks } from "@/lib/utils/hand-processing";
-import perfLogger from "@/lib/utils/logger";
 import { useHandStore } from "@/store/hand-store";
 import type { BothHandsData, GestureHandData } from "@/types";
 import { useDetectionLoop } from "./use-detection-loop";
@@ -62,8 +61,6 @@ export const useGestureRecognition = ({
   drawLandmarks = true,
   onHandData,
 }: UseGestureRecognitionProps): UseGestureRecognitionReturn => {
-  perfLogger.hookInit("useGestureRecognition", { drawLandmarks });
-
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const onHandDataRef = useRef(onHandData);
