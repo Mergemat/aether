@@ -1,3 +1,16 @@
+## [0.7.0](https://github.com/Mergemat/aether/compare/v0.6.0...v0.7.0) (2026-01-04)
+
+### Features
+
+* test ci ([f649bc3](https://github.com/Mergemat/aether/commit/f649bc31d4c9f9a20dbfb1c3c6f1be46e1ad22e7))
+
+### Bug Fixes
+
+* aether title ([8cc05a9](https://github.com/Mergemat/aether/commit/8cc05a930efb388d24a08ac646b02df6471d6ca2))
+* cacheComponents for www ([eeccfdc](https://github.com/Mergemat/aether/commit/eeccfdcef4de2bd96230a1208215bd9875d7c3e5))
+* ci ([f8f5726](https://github.com/Mergemat/aether/commit/f8f57260fbd1f18955f326098979a93f99efe244))
+* cols-4 for mappings ([16d58b8](https://github.com/Mergemat/aether/commit/16d58b8c40f87afa3b19893ce207be615ac05017))
+
 ## [0.6.0](https://github.com/Mergemat/aether/compare/v0.5.0...v0.6.0) (2026-01-04)
 
 ### Features
