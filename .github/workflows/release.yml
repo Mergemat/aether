@@ -59,12 +59,17 @@ jobs: # Ensure everything below this is indented
 
   promote:
     name: Publish Release
-    needs: build
+    # 1. Added 'release' here so we can access its outputs
+    needs: [release, build] 
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      # 2. Added checkout so 'gh' knows which repository to use
+      - uses: actions/checkout@v4
+
       - name: Publish Draft Release
+        # Now this will correctly evaluate to 'v1.2.3' (or whatever your version is)
         run: gh release edit v${{ needs.release.outputs.new_release_version }} --draft=false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
