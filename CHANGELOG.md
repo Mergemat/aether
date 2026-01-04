@@ -1,3 +1,9 @@
+## [0.7.2](https://github.com/Mergemat/aether/compare/v0.7.1...v0.7.2) (2026-01-04)
+
+### Bug Fixes
+
+* useless commit AGAIN ([f5503b8](https://github.com/Mergemat/aether/commit/f5503b8b3ee9f57ef3fd9a07596fbb86cc4c294f))
+
 ## [0.7.1](https://github.com/Mergemat/aether/compare/v0.7.0...v0.7.1) (2026-01-04)
 
 ### Bug Fixes
