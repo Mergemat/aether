@@ -1,3 +1,4 @@
+import { motion } from "motion/react";
 import { useShallow } from "zustand/react/shallow";
 import { cn } from "@/lib/utils";
 import { clamp } from "@/lib/utils/clamp";
@@ -74,7 +75,7 @@ function FaderMonitor({ mapping }: { mapping: Mapping }) {
 
   return (
     <div className="relative h-20 w-8 overflow-hidden rounded-full bg-secondary/50">
-      <div
+      <motion.div
         className="absolute bottom-0 w-full rounded-b-full bg-primary"
         style={{ height: `${percentage}%` }}
       />
@@ -90,12 +91,12 @@ function KnobMonitor({ mapping }: { mapping: Mapping }) {
 
   return (
     <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-secondary bg-secondary/20">
-      <div
+      <motion.div
         className="absolute h-full w-1 bg-primary/50"
         style={{ transform: `rotate(${rotation}deg)` }}
       >
-        <div className="absolute top-1 h-3 w-full rounded-full bg-primary" />
-      </div>
+        <div className="absolute top-0 h-4 w-full bg-primary" />
+      </motion.div>
       <div className="z-10 flex h-12 w-12 items-center justify-center rounded-full bg-card font-mono text-[10px] shadow-sm">
         {knobValue.toFixed(1)}
       </div>

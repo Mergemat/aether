@@ -13,15 +13,6 @@ interface UseGestureRecognitionProps {
   onHandData?: (handData: BothHandsData) => void;
 }
 
-interface UseGestureRecognitionReturn {
-  canvasRef: React.RefObject<HTMLCanvasElement | null>;
-  startDetection: () => void;
-  stopDetection: () => void;
-  isLoading: boolean;
-  loadingProgress: string;
-  error: string | null;
-}
-
 const DEFAULT_HAND_DATA: GestureHandData = { gesture: "None", y: 0, rot: 0 };
 
 const processResults = (
