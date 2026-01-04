@@ -1,3 +1,9 @@
+## [0.4.0](https://github.com/Mergemat/aether/compare/v0.3.0...v0.4.0) (2026-01-04)
+
+### Features
+
+* animations with motion ([8941a57](https://github.com/Mergemat/aether/commit/8941a571bd5356e6d10df6f5dd5b4de9184b31d5))
+
 ## [0.3.0](https://github.com/Mergemat/aether/compare/v0.2.2...v0.3.0) (2026-01-04)
 
 ### Features
