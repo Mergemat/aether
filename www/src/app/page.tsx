@@ -1,8 +1,8 @@
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { Suspense } from "react";
 import { DownloadButton } from "@/components/DownloadButton";
 import { DownloadClient } from "@/components/DownloadClient";
-import { Loader2 } from "lucide-react";
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -44,9 +44,6 @@ export default function Home() {
               >
                 GitHub
               </a>
-              <Suspense fallback={null}>
-                <DownloadButton variant="secondary" />
-              </Suspense>
             </div>
           </div>
         </Container>
