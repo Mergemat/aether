@@ -33,26 +33,25 @@ mac:
   gatekeeperAssess: false
 
 dmg:
-  title: "Install ${productName}"
   iconSize: 100
   window:
     width: 540
-    height: 420
+    height: 520
   contents:
     # The App itself
     - x: 130
-      y: 200
+      y: 120
       type: file
     # Shortcut to Applications folder
     - x: 410
-      y: 200
+      y: 120
       type: link
       path: /Applications
-    # The Fix Script
-    - x: 270
-      y: 330
+    # Readme file
+    - x: 130
+      y: 240
       type: file
-      path: build/Fix-Damaged-App.command
+      path: build/README.txt
 
 # Windows configuration
 win:
