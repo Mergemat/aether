@@ -51,7 +51,7 @@ module.exports = {
 		[
 			"@semantic-release/github",
 			{
-				draft: true, // Creates the release as a draft (hidden from "Latest")
+				draftRelease: true,
 			},
 		],
 	],
