@@ -1,3 +1,9 @@
+## [0.6.0](https://github.com/Mergemat/aether/compare/v0.5.0...v0.6.0) (2026-01-04)
+
+### Features
+
+* add quarantine flag removal script ([070e06b](https://github.com/Mergemat/aether/commit/070e06bebd6f36403b3cf61fb05bbd2a9354a70f))
+
 ## [0.5.0](https://github.com/Mergemat/aether/compare/v0.4.0...v0.5.0) (2026-01-04)
 
 ### Features
