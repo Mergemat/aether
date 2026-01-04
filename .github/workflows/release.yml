@@ -1,55 +1,68 @@
-name: Build & Publish
+name: CI/CD Pipeline
 
 on:
   push:
-    tags:
-      - 'v*'
-
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: false
+    branches: [main]
+    tags: ['v*']
 
 jobs:
-  build-macos:
-    runs-on: macos-latest
+  release:
+    name: Semantic Release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
     permissions:
       contents: write
-
+      issues: write
+      pull-requests: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v4
         with:
-          bun-version: latest
+          fetch-depth: 0
+      
+      # Explicitly set Node 22 to satisfy semantic-release requirements
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
 
+      - uses: oven-sh/setup-bun@v2
+      
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      - name: Build and Publish (macOS)
-        run: bun run build && bunx electron-builder --mac --publish always
+        
+      - name: Release
+        run: bunx semantic-release
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-windows:
-    runs-on: windows-latest
+  build:
+    name: Build & Publish
+    if: startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     permissions:
       contents: write
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@v4
+      
+      # Recommended to use Node 22 here as well for consistency
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: 22
 
+      - uses: oven-sh/setup-bun@v2
+      
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
-      - name: Build and Publish (Windows)
-        run: bun run build && bunx electron-builder --win --publish always
+        
+      - name: Build and Publish Electron App
+        run: |
+          # Ensure build scripts run
+          bun run build
+          # Release assets to the tag created by semantic-release
+          bunx electron-builder --${{ matrix.os == 'macos-latest' && 'mac' || 'win' }} --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
