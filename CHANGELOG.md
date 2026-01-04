@@ -1,3 +1,10 @@
+## [0.5.0](https://github.com/Mergemat/aether/compare/v0.4.0...v0.5.0) (2026-01-04)
+
+### Features
+
+* animations! ([83f4ddd](https://github.com/Mergemat/aether/commit/83f4ddd5d2ecf5a64a548ed4a13320793c7a3c1d))
+* dialog on update ([d7b4b00](https://github.com/Mergemat/aether/commit/d7b4b00209607ef0342d4345ed1de632397f8f11))
+
 ## [0.4.0](https://github.com/Mergemat/aether/compare/v0.3.0...v0.4.0) (2026-01-04)
 
 ### Features
