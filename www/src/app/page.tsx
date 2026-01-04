@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Suspense } from "react";
 import { DownloadButton } from "@/components/DownloadButton";
 
 function Container({ children }: { children: React.ReactNode }) {
@@ -41,7 +42,9 @@ export default function Home() {
               >
                 GitHub
               </a>
-              <DownloadButton variant="secondary" />
+              <Suspense fallback={null}>
+                <DownloadButton variant="secondary" />
+              </Suspense>
             </div>
           </div>
         </Container>
@@ -73,7 +76,9 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col gap-4 sm:flex-row" id="download">
-                  <DownloadButton />
+                  <Suspense fallback={null}>
+                    <DownloadButton />
+                  </Suspense>
                 </div>
               </div>
 
