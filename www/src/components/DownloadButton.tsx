@@ -1,3 +1,4 @@
+import { cacheLife } from "next/cache";
 import { headers } from "next/headers";
 import { DownloadClient } from "./DownloadClient";
 
@@ -29,6 +30,8 @@ interface DownloadInfo {
 }
 
 async function getDownloadInfo(): Promise<DownloadInfo> {
+  "use cache";
+  cacheLife("hours");
   const fallback: DownloadInfo = {
     platform: "unknown",
     options: [
@@ -45,7 +48,6 @@ async function getDownloadInfo(): Promise<DownloadInfo> {
 
     const response = await fetch(
       "https://api.github.com/repos/Mergemat/aether/releases/latest",
-      { next: { revalidate: 3600 } },
     );
     const data: Release = await response.json();
     const assets = data.assets || [];
