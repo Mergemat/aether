@@ -27,15 +27,18 @@ function SwitchMonitor({ mapping }: { mapping: Mapping }) {
   return (
     <div
       className={cn(
-        "flex h-20 w-20 items-center justify-center rounded-xl border-4 transition-all",
+        "flex h-20 w-20 items-center justify-center rounded-xl border-4",
         switchState
           ? "border-primary bg-primary/20"
           : "border-muted bg-muted/20"
       )}
     >
-      <div
+      <motion.div
+        animate={{
+          scale: [0.5, 1],
+        }}
         className={cn(
-          "h-10 w-10 rounded-xl transition-colors",
+          "h-10 w-10 rounded-lg transition-colors",
           switchState ? "bg-primary" : "bg-muted-foreground/20"
         )}
       />
@@ -57,7 +60,10 @@ function TriggerMonitor({ mapping }: { mapping: Mapping }) {
           : "border-muted bg-muted/20"
       )}
     >
-      <div
+      <motion.div
+        animate={{
+          scale: [0.5, 1],
+        }}
         className={cn(
           "h-8 w-8 rounded-full transition-colors",
           isActive ? "bg-primary" : "bg-muted-foreground/20"
@@ -74,12 +80,17 @@ function FaderMonitor({ mapping }: { mapping: Mapping }) {
   const percentage = Math.max(0, Math.min(100, value * 100));
 
   return (
-    <div className="relative h-20 w-8 overflow-hidden rounded-full bg-secondary/50">
+    <motion.div
+      animate={{
+        scaleY: [0.5, 1],
+      }}
+      className="relative h-20 w-8 overflow-hidden rounded-full bg-secondary/50"
+    >
       <motion.div
         className="absolute bottom-0 w-full rounded-b-full bg-primary"
         style={{ height: `${percentage}%` }}
       />
-    </div>
+    </motion.div>
   );
 }
 
@@ -90,7 +101,13 @@ function KnobMonitor({ mapping }: { mapping: Mapping }) {
   const rotation = clamp(knobValue * 300 - 150, -150, 150);
 
   return (
-    <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-secondary bg-secondary/20">
+    <motion.div
+      animate={{
+        scale: [0.5, 1],
+        rotate: [360, 0],
+      }}
+      className="relative flex h-20 w-20 items-center justify-center rounded-full border border-secondary bg-secondary/20"
+    >
       <motion.div
         className="absolute h-full w-1 bg-primary/50"
         style={{ transform: `rotate(${rotation}deg)` }}
@@ -100,6 +117,6 @@ function KnobMonitor({ mapping }: { mapping: Mapping }) {
       <div className="z-10 flex h-12 w-12 items-center justify-center rounded-full bg-card font-mono text-[10px] shadow-sm">
         {knobValue.toFixed(1)}
       </div>
-    </div>
+    </motion.div>
   );
 }
