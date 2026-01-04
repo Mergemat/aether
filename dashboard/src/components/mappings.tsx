@@ -84,7 +84,7 @@ export function Mappings() {
         sensors={sensors}
       >
         <SortableContext items={order} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 lg:grid-cols-5">
+          <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
             {orderedMappings.map((mapping) => (
               <SortableMappingTile key={mapping.id} mapping={mapping} />
             ))}
