@@ -1,41 +1,4 @@
-name: CI/CD Pipeline
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  # STEP 1: Determine if a release should happen
-  release:
-    name: Semantic Release
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-    outputs:
-      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
-      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: oven-sh/setup-bun@v2
-      
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Semantic Release
-        id: semantic
-        # Using this action wrapper to get the 'new_release_published' output
-        uses: cycjimmy/semantic-release-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # STEP 2: Build only if STEP 1 published a new version
+# STEP 2: Build
   build:
     name: Build & Upload Assets
     needs: release
@@ -49,7 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Pull the tag that was just created by the release job
           ref: v${{ needs.release.outputs.new_release_version }}
       
       - uses: actions/setup-node@v4
@@ -63,11 +25,12 @@ jobs:
       - name: Build and Upload
         run: |
           bun run build
+          # electron-builder will detect the existing draft tag and upload assets there
           bunx electron-builder --${{ matrix.os == 'macos-latest' && 'mac' || 'win' }} --publish always
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  # STEP 3: Promote from Draft to Published
+  # STEP 3: Now the landing page will see it
   promote:
     name: Publish Release
     needs: build
@@ -76,7 +39,6 @@ jobs:
       contents: write
     steps:
       - name: Publish Draft Release
-        # Uses the version shared from the release job
         run: gh release edit v${{ needs.release.outputs.new_release_version }} --draft=false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
