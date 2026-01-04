@@ -1,3 +1,9 @@
+## [0.8.0](https://github.com/Mergemat/aether/compare/v0.7.3...v0.8.0) (2026-01-04)
+
+### Features
+
+* add readme to build ([0b85f6a](https://github.com/Mergemat/aether/commit/0b85f6ac5b0b413301a7af07c87e0507b370bc36))
+
 ## [0.7.3](https://github.com/Mergemat/aether/compare/v0.7.2...v0.7.3) (2026-01-04)
 
 ### Bug Fixes
