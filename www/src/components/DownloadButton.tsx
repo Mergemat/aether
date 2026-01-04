@@ -1,4 +1,3 @@
-import { cacheLife } from "next/cache";
 import { headers } from "next/headers";
 import { DownloadClient } from "./DownloadClient";
 
@@ -23,8 +22,6 @@ export interface DownloadButtonProps {
 }
 
 async function getLatestRelease(): Promise<Release> {
-  "use cache";
-  cacheLife("hours");
   const res = await fetch(
     "https://api.github.com/repos/Mergemat/aether/releases/latest",
     { headers: { "User-Agent": "Aether-App" } },
@@ -41,36 +38,33 @@ export async function DownloadButton({
   const data = await getLatestRelease();
   const assets = data.assets || [];
 
-  const win = assets.find(
-    (a) => a.name.endsWith(".exe") && !a.name.includes("blockmap"),
-  );
-  const macArm = assets.find(
-    (a) => a.name.endsWith(".dmg") && a.name.includes("arm64"),
-  );
-  const macIntel = assets.find(
-    (a) => a.name.endsWith(".dmg") && !a.name.includes("arm64"),
-  );
-
-  const options: DownloadOption[] = [];
-  if (macArm)
-    options.push({
-      url: macArm.browser_download_url,
-      label: "macOS (Silicon)",
-    });
-  if (macIntel)
-    options.push({
-      url: macIntel.browser_download_url,
-      label: "macOS (Intel)",
-    });
-  if (win) options.push({ url: win.browser_download_url, label: "Windows" });
-
   const head = await headers();
   const ua = (head.get("user-agent") || "").toLowerCase();
-  const platformLabel = ua.includes("mac")
-    ? "macOS"
-    : ua.includes("win")
-      ? "Windows"
-      : undefined;
+  const isMac = ua.includes("mac");
+  const isWin = ua.includes("win");
+
+  const options: DownloadOption[] = [];
+
+  if (isMac) {
+    const arm = assets.find(
+      (a) => a.name.endsWith(".dmg") && a.name.includes("arm64"),
+    );
+    const intel = assets.find(
+      (a) => a.name.endsWith(".dmg") && !a.name.includes("arm64"),
+    );
+
+    if (arm)
+      options.push({ url: arm.browser_download_url, label: "macOS (Silicon)" });
+    if (intel)
+      options.push({ url: intel.browser_download_url, label: "macOS (Intel)" });
+  } else if (isWin) {
+    const win = assets.find(
+      (a) => a.name.endsWith(".exe") && !a.name.includes("blockmap"),
+    );
+    if (win) options.push({ url: win.browser_download_url, label: "Windows" });
+  }
+
+  const platformLabel = isMac ? "macOS" : isWin ? "Windows" : undefined;
 
   return (
     <DownloadClient
