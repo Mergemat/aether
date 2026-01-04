@@ -1,6 +1,8 @@
 import Image from "next/image";
 import { Suspense } from "react";
 import { DownloadButton } from "@/components/DownloadButton";
+import { DownloadClient } from "@/components/DownloadClient";
+import { Loader2 } from "lucide-react";
 
 function Container({ children }: { children: React.ReactNode }) {
   return (
@@ -76,7 +78,13 @@ export default function Home() {
                 </div>
 
                 <div className="flex flex-col gap-4 sm:flex-row" id="download">
-                  <Suspense fallback={null}>
+                  <Suspense
+                    fallback={
+                      <DownloadClient options={[]}>
+                        <Loader2 className="animate-spin" />
+                      </DownloadClient>
+                    }
+                  >
                     <DownloadButton />
                   </Suspense>
                 </div>
