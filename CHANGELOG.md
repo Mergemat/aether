@@ -1,3 +1,9 @@
+## [0.6.1](https://github.com/Mergemat/aether/compare/v0.6.0...v0.6.1) (2026-01-04)
+
+### Bug Fixes
+
+* aether title ([8cc05a9](https://github.com/Mergemat/aether/commit/8cc05a930efb388d24a08ac646b02df6471d6ca2))
+
 ## [0.6.0](https://github.com/Mergemat/aether/compare/v0.5.0...v0.6.0) (2026-01-04)
 
 ### Features
