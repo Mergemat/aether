@@ -38,7 +38,6 @@ export function useDetectionLoop({
     }
   }, []);
 
-  // Track if start was requested (to auto-start when recognizer loads)
   const startRequestedRef = useRef(false);
 
   const start = useCallback(() => {
@@ -48,7 +47,6 @@ export function useDetectionLoop({
       return;
     }
 
-    // Can't start without recognizer - will auto-start when it loads
     if (!recognizer) {
       return;
     }
@@ -68,7 +66,6 @@ export function useDetectionLoop({
         return;
       }
 
-      // No FPS throttling - run as fast as possible for minimal latency
       const results = recognizer.recognizeForVideo(video, performance.now());
       onResultsRef.current(results);
 
@@ -80,7 +77,6 @@ export function useDetectionLoop({
     loop();
   }, [videoRef, recognizer]);
 
-  // Auto-start when recognizer becomes available (if start was previously requested)
   useEffect(() => {
     if (recognizer && startRequestedRef.current && !isRunningRef.current) {
       start();
