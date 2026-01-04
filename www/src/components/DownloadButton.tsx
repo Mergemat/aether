@@ -2,102 +2,35 @@ import { cacheLife } from "next/cache";
 import { headers } from "next/headers";
 import { DownloadClient } from "./DownloadClient";
 
-interface Asset {
+export interface Asset {
   name: string;
   browser_download_url: string;
 }
 
-interface Release {
+export interface Release {
   assets: Asset[];
 }
 
-interface DownloadButtonProps {
+export interface DownloadOption {
+  url: string;
+  label: string;
+}
+
+export interface DownloadButtonProps {
   className?: string;
   children?: React.ReactNode;
   variant?: "primary" | "secondary";
 }
 
-type Platform = "mac" | "windows" | "unknown";
-
-interface DownloadOption {
-  url: string;
-  label: string;
-}
-
-interface DownloadInfo {
-  platform: Platform;
-  options: DownloadOption[];
-}
-
-async function getDownloadInfo(): Promise<DownloadInfo> {
+async function getLatestRelease(): Promise<Release> {
   "use cache";
   cacheLife("hours");
-  const fallback: DownloadInfo = {
-    platform: "unknown",
-    options: [
-      {
-        url: "https://github.com/Mergemat/aether/releases/latest",
-        label: "Download",
-      },
-    ],
-  };
-
-  try {
-    const headersList = await headers();
-    const userAgent = (headersList.get("user-agent") || "").toLowerCase();
-
-    const response = await fetch(
-      "https://api.github.com/repos/Mergemat/aether/releases/latest",
-    );
-    const data: Release = await response.json();
-    const assets = data.assets || [];
-
-    if (userAgent.includes("mac")) {
-      const armAsset = assets.find(
-        (a) => a.name.endsWith(".dmg") && a.name.includes("arm64"),
-      );
-      const intelAsset = assets.find(
-        (a) =>
-          a.name.endsWith(".dmg") &&
-          !a.name.includes("arm64") &&
-          !a.name.endsWith(".blockmap"),
-      );
-
-      const options: DownloadOption[] = [];
-      if (armAsset) {
-        options.push({
-          url: armAsset.browser_download_url,
-          label: "Apple Silicon",
-        });
-      }
-      if (intelAsset) {
-        options.push({
-          url: intelAsset.browser_download_url,
-          label: "Intel",
-        });
-      }
-
-      if (options.length > 0) {
-        return { platform: "mac", options };
-      }
-    } else if (userAgent.includes("win")) {
-      const winAsset = assets.find(
-        (a) => a.name.endsWith(".exe") && !a.name.endsWith(".blockmap"),
-      );
-
-      if (winAsset) {
-        return {
-          platform: "windows",
-          options: [{ url: winAsset.browser_download_url, label: "Windows" }],
-        };
-      }
-    }
-
-    return fallback;
-  } catch (error) {
-    console.error("Failed to fetch latest release:", error);
-    return fallback;
-  }
+  const res = await fetch(
+    "https://api.github.com/repos/Mergemat/aether/releases/latest",
+    { headers: { "User-Agent": "Aether-App" } },
+  );
+  if (!res.ok) throw new Error("Failed to fetch");
+  return res.json();
 }
 
 export async function DownloadButton({
@@ -105,17 +38,43 @@ export async function DownloadButton({
   children,
   variant = "primary",
 }: DownloadButtonProps) {
-  const { platform, options } = await getDownloadInfo();
+  const data = await getLatestRelease();
+  const assets = data.assets || [];
+
+  const win = assets.find(
+    (a) => a.name.endsWith(".exe") && !a.name.includes("blockmap"),
+  );
+  const macArm = assets.find(
+    (a) => a.name.endsWith(".dmg") && a.name.includes("arm64"),
+  );
+  const macIntel = assets.find(
+    (a) => a.name.endsWith(".dmg") && !a.name.includes("arm64"),
+  );
+
+  const options: DownloadOption[] = [];
+  if (macArm)
+    options.push({
+      url: macArm.browser_download_url,
+      label: "macOS (Silicon)",
+    });
+  if (macIntel)
+    options.push({
+      url: macIntel.browser_download_url,
+      label: "macOS (Intel)",
+    });
+  if (win) options.push({ url: win.browser_download_url, label: "Windows" });
+
+  const head = await headers();
+  const ua = (head.get("user-agent") || "").toLowerCase();
+  const platformLabel = ua.includes("mac")
+    ? "macOS"
+    : ua.includes("win")
+      ? "Windows"
+      : undefined;
 
   return (
     <DownloadClient
-      platformLabel={
-        platform === "mac"
-          ? "macOS"
-          : platform === "windows"
-            ? "Windows"
-            : undefined
-      }
+      platformLabel={platformLabel}
       options={options}
       className={className}
       variant={variant}
