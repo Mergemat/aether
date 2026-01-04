@@ -1,14 +1,13 @@
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
 import logo from "./assets/logo.svg";
 import { Mappings } from "./components/mappings";
-import { Spinner } from "./components/ui/spinner";
 import { useGestureRecognition } from "./hooks/use-gesture-recognition";
 import { useHandDataStreamer } from "./hooks/use-hand-data-streamer";
 import { useWebcam } from "./hooks/use-webcam";
 
-export default function App() {
-
+function AppInner() {
   const { videoRef, error } = useWebcam();
 
   const {
@@ -19,14 +18,7 @@ export default function App() {
     wsUrl: "ws://127.0.0.1:8888",
   });
 
-  const {
-    canvasRef,
-    startDetection,
-    stopDetection,
-    isLoading,
-    loadingProgress,
-    error: recognizerError,
-  } = useGestureRecognition({
+  const { canvasRef, startDetection, stopDetection } = useGestureRecognition({
     videoRef,
     onHandData: (handData) => {
       sendHandData(handData);
@@ -55,19 +47,6 @@ export default function App() {
     );
   }
 
-  if (recognizerError) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="font-medium text-lg">
-            Failed to initialize gesture recognizer
-          </p>
-          <p className="text-muted-foreground text-sm">{recognizerError}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-1 flex-col gap-4 px-4 pt-4">
       <div className="flex justify-center gap-2">
@@ -76,12 +55,6 @@ export default function App() {
       </div>
       <div className="mx-auto w-full max-w-3xl">
         <div className="relative aspect-video w-full overflow-hidden rounded-xl border bg-black shadow-lg">
-          {isLoading && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 bg-black/80">
-              <Spinner className="size-8" />
-              <p className="text-muted-foreground text-sm">{loadingProgress}</p>
-            </div>
-          )}
           <video
             autoPlay
             className="absolute inset-0 h-full w-full -scale-x-100 object-cover opacity-70"
@@ -106,3 +79,32 @@ export default function App() {
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <ErrorBoundary
+      fallbackRender={({ error }) => <VisionError error={error} />}
+    >
+      <Suspense fallback={<VisionLoader />}>
+        <AppInner />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
+export const VisionLoader = () => (
+  <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-background p-8 shadow-2xl backdrop-blur-xl">
+    <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary/20 border-t-primary" />
+    <h3 className="font-medium text-white">Loading Vision Models</h3>
+    <p className="text-slate-400 text-sm">Downloading WASM binaries...</p>
+  </div>
+);
+
+export const VisionError = ({ error }: { error: Error }) => (
+  <div className="absolute inset-0 flex items-center justify-center bg-background">
+    <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center">
+      <p className="mb-2 font-bold text-red-400">Engine Error</p>
+      <p className="text-red-300/80 text-sm">{error.message}</p>
+    </div>
+  </div>
+);

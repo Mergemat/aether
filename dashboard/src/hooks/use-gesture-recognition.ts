@@ -5,7 +5,7 @@ import { processHandLandmarks } from "@/lib/utils/hand-processing";
 import { useHandStore } from "@/store/hand-store";
 import type { BothHandsData, GestureHandData } from "@/types";
 import { useDetectionLoop } from "./use-detection-loop";
-import { useGestureRecognizerModel } from "./use-gesture-recognizer-model";
+import { useGestureRecognizer } from "./use-gesture-recognizer-model";
 
 interface UseGestureRecognitionProps {
   videoRef: React.RefObject<HTMLVideoElement | null>;
@@ -60,7 +60,7 @@ export const useGestureRecognition = ({
   videoRef,
   drawLandmarks = true,
   onHandData,
-}: UseGestureRecognitionProps): UseGestureRecognitionReturn => {
+}: UseGestureRecognitionProps) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const onHandDataRef = useRef(onHandData);
@@ -74,8 +74,7 @@ export const useGestureRecognition = ({
   const updateHand = useHandStore((state) => state.updateHand);
   const resetHands = useHandStore((state) => state.resetHands);
 
-  const { recognizer, isLoading, loadingProgress, error } =
-    useGestureRecognizerModel();
+  const recognizer = useGestureRecognizer();
 
   const getCanvasContext = useCallback(() => {
     const canvas = canvasRef.current;
@@ -132,8 +131,5 @@ export const useGestureRecognition = ({
     canvasRef,
     startDetection: start,
     stopDetection: stop,
-    isLoading,
-    loadingProgress,
-    error,
   };
 };
