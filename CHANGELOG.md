@@ -1,3 +1,15 @@
+## [0.3.0](https://github.com/Mergemat/aether/compare/v0.2.2...v0.3.0) (2026-01-04)
+
+### Features
+
+* better model loader + better loading and error handling ([28c7495](https://github.com/Mergemat/aether/commit/28c7495dab23d782127c220c4c787ac1669e4abd))
+* **www:** implement dynamic DownloadButton with platform detection ([2c5355f](https://github.com/Mergemat/aether/commit/2c5355f3764ac0fe3e6dd584c3adf268a9b63c08))
+* **www:** integrate shadcn-ui and refactor download button ([c31e101](https://github.com/Mergemat/aether/commit/c31e101d126aa451474d98c076305a1d74fc26cf))
+
+### Bug Fixes
+
+* mapping-tile hand mirror ([d3f5ca3](https://github.com/Mergemat/aether/commit/d3f5ca391b2d5725cec7992b01b98024102859fb))
+
 ## [0.2.2](https://github.com/Mergemat/aether/compare/v0.2.1...v0.2.2) (2026-01-03)
 
 ### Bug Fixes
