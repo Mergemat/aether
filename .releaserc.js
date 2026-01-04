@@ -48,6 +48,11 @@ module.exports = {
 					"chore(release): ${nextRelease.version}\n\n${nextRelease.notes}",
 			},
 		],
-		"@semantic-release/github",
+		[
+			"@semantic-release/github",
+			{
+				draft: true, // Creates the release as a draft (hidden from "Latest")
+			},
+		],
 	],
 };
