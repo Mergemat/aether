@@ -100,3 +100,5 @@ export function useDetectionLoop({
     isRunning: isRunningRef.current,
   };
 }
+
+// useless commit to trigger the build
