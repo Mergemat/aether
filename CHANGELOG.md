@@ -1,3 +1,10 @@
+## [0.7.1](https://github.com/Mergemat/aether/compare/v0.7.0...v0.7.1) (2026-01-04)
+
+### Bug Fixes
+
+* ci again ([0ff5b1d](https://github.com/Mergemat/aether/commit/0ff5b1d1306fab0417cf779ec57a378af1603e12))
+* useless commit to trigger the build ([f6351e1](https://github.com/Mergemat/aether/commit/f6351e151cb1e98f48f38d62485c49c78e6427aa))
+
 ## [0.7.0](https://github.com/Mergemat/aether/compare/v0.6.0...v0.7.0) (2026-01-04)
 
 ### Features
