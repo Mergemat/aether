@@ -1,3 +1,9 @@
+## [0.7.3](https://github.com/Mergemat/aether/compare/v0.7.2...v0.7.3) (2026-01-04)
+
+### Bug Fixes
+
+* useless commit to delete useless comments ([910499d](https://github.com/Mergemat/aether/commit/910499dc1e45de2e45aa2f3900f11d7b306f0d5b))
+
 ## [0.7.2](https://github.com/Mergemat/aether/compare/v0.7.1...v0.7.2) (2026-01-04)
 
 ### Bug Fixes
