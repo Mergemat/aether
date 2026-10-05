@@ -1,7 +1,8 @@
 import type { NormalizedLandmark } from "@mediapipe/tasks-vision";
+import { FADER_BOTTOM, FADER_TOP } from "@/lib/constants";
 import { clamp } from "./clamp";
 
-const PALM_INDICES = [0, 5, 9, 13, 17];
+export const PALM_INDICES = [0, 5, 9, 13, 17];
 
 const ROTATION_LANDMARK_MAP = new Map<string, [number, number]>([
   ["Open_Palm", [5, 17]],
@@ -26,11 +27,7 @@ export const processHandLandmarks = (
     PALM_INDICES.reduce((sum, i) => sum + landmarks[i].y, 0) /
     PALM_INDICES.length;
 
-  const y = 1 - avgY;
-
-  const MIN_Y = 0.2;
-  const MAX_Y = 0.6;
-  const scaledY = (y - MIN_Y) / (MAX_Y - MIN_Y);
+  const scaledY = (FADER_BOTTOM - avgY) / (FADER_BOTTOM - FADER_TOP);
 
   const isLeft = handedness.toLowerCase() === "left";
 

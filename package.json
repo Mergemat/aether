@@ -39,7 +39,6 @@
   },
   "dependencies": {
     "electron-updater": "^6.8.9",
-    "node-osc": "^11.7.1",
     "react-error-boundary": "^6.1.6",
     "ws": "^8.22.0"
   }

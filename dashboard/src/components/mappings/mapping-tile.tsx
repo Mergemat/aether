@@ -1,11 +1,10 @@
 import {
-  IconFocus2,
-  IconGripVertical,
-  IconHandStop,
-  IconSettings,
+  IconAdjustmentsHorizontal,
+  IconHeadphones,
   IconTrash,
 } from "@tabler/icons-react";
 import { useShallow } from "zustand/react/shallow";
+import { GestureIcon } from "@/components/gesture-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,10 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { GESTURE_EMOJIS, GESTURES } from "@/lib/constants";
+import { GESTURE_LABELS, GESTURES, MODE_LABELS } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useMappingsStore } from "@/store/mappings-store";
-import type { Gesture, Hand, Mapping, Mode } from "@/types";
+import type { Hand, Mapping, Mode } from "@/types";
 import { Label } from "../ui/label";
 import { MappingMonitor } from "./mapping-monitor";
 
@@ -35,77 +34,57 @@ export interface DragHandleProps {
   ref: React.Ref<HTMLButtonElement>;
 }
 
-function DragHandle({ dragHandleProps }: { dragHandleProps: DragHandleProps }) {
-  return (
-    <button
-      className="absolute bottom-2 left-2 cursor-grab touch-none rounded p-0.5 text-muted-foreground/50 transition-colors hover:bg-secondary hover:text-muted-foreground active:cursor-grabbing"
-      type="button"
-      {...dragHandleProps}
-    >
-      <IconGripVertical className="h-3.5 w-3.5" />
-    </button>
-  );
-}
-
-function HandIndicator({ hand }: { hand: Hand }) {
-  return (
-    <div className="absolute flex items-center gap-1.5 rounded-full bg-secondary/50 px-2 py-1 backdrop-blur-sm">
-      <IconHandStop
-        className={`h-3.5 w-3.5 text-muted-foreground ${hand === "left" ? "scale-x-[-1]" : ""}`}
-      />
-      <span className="text-xs leading-none">{hand}</span>
-    </div>
-  );
-}
+const HAND_LABELS: Record<Hand, string> = { left: "Left", right: "Right" };
 
 function ConfigPopover({
   mapping,
   onUpdate,
   onDelete,
-  onIsolateToggle,
-  isIsolated,
+  onSoloToggle,
+  isSolo,
 }: {
   mapping: Mapping;
   onUpdate: (name: keyof Mapping, value: string | boolean) => void;
   onDelete: () => void;
-  onIsolateToggle: () => void;
-  isIsolated: boolean;
+  onSoloToggle: () => void;
+  isSolo: boolean;
 }) {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          className="absolute right-2 h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100"
+          aria-label="Control settings"
+          className="-my-1.5 size-7 text-print-dim opacity-0 transition-opacity hover:text-print focus-visible:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100"
           onPointerDown={(e) => e.stopPropagation()}
           size="icon"
           variant="ghost"
         >
-          <IconSettings className="h-3.5 w-3.5 text-muted-foreground" />
+          <IconAdjustmentsHorizontal className="size-4" stroke={1.5} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80">
-        <div className="grid gap-4">
-          <PopoverHeader>
-            <PopoverTitle>Configuration</PopoverTitle>
-            <PopoverDescription>
-              Configure the gesture mapping.
-            </PopoverDescription>
-          </PopoverHeader>
-          <ConfigFields mapping={mapping} onUpdate={onUpdate} />
-          <div className="flex gap-2">
-            <Button
-              className="flex-1"
-              onClick={onIsolateToggle}
-              variant={isIsolated ? "default" : "secondary"}
-            >
-              <IconFocus2 className="mr-2 h-4 w-4" />
-              {isIsolated ? "Un-isolate" : "Isolate"}
-            </Button>
-            <Button className="flex-1" onClick={onDelete} variant="destructive">
-              <IconTrash className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
-          </div>
+      <PopoverContent align="end" className="w-80 gap-4 p-4">
+        <PopoverHeader>
+          <PopoverTitle className="text-print text-sm">
+            {MODE_LABELS[mapping.mode]} · {HAND_LABELS[mapping.hand]} hand
+          </PopoverTitle>
+          <PopoverDescription>
+            Choose which hand and gesture drive this control.
+          </PopoverDescription>
+        </PopoverHeader>
+        <ConfigFields mapping={mapping} onUpdate={onUpdate} />
+        <div className="flex gap-2">
+          <Button
+            className="flex-1"
+            onClick={onSoloToggle}
+            variant={isSolo ? "default" : "secondary"}
+          >
+            <IconHeadphones className="size-4" stroke={1.5} />
+            {isSolo ? "Unsolo" : "Solo"}
+          </Button>
+          <Button className="flex-1" onClick={onDelete} variant="destructive">
+            <IconTrash className="size-4" stroke={1.5} />
+            Remove
+          </Button>
         </div>
       </PopoverContent>
     </Popover>
@@ -119,132 +98,85 @@ function ConfigFields({
   mapping: Mapping;
   onUpdate: (name: keyof Mapping, value: string | boolean) => void;
 }) {
+  const id = (field: string) => `${mapping.id}-${field}`;
+
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-2.5 text-sm">
       <div className="grid grid-cols-3 items-center gap-4">
-        <Label htmlFor="enabled">Enabled</Label>
+        <Label htmlFor={id("enabled")}>Enabled</Label>
         <div className="col-span-2 flex items-center">
           <Switch
             checked={mapping.enabled}
-            id="enabled"
+            id={id("enabled")}
             onCheckedChange={(checked) => onUpdate("enabled", checked)}
           />
         </div>
       </div>
       <div className="grid grid-cols-3 items-center gap-4">
-        <span className="text-sm">Hand</span>
+        <Label htmlFor={id("hand")}>Hand</Label>
         <Select
           onValueChange={(v: Hand) => onUpdate("hand", v)}
           value={mapping.hand}
         >
-          <SelectTrigger className="col-span-2 h-8 w-full">
+          <SelectTrigger className="col-span-2 h-8 w-full" id={id("hand")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="left">Left</SelectItem>
-            <SelectItem value="right">Right</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="grid grid-cols-3 items-center gap-4">
-        <Label htmlFor="gesture">Gesture</Label>
-        <Select
-          onValueChange={(v) => onUpdate("gesture", v)}
-          value={mapping.gesture}
-        >
-          <SelectTrigger className="col-span-2 h-8 w-full" id="gesture">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {GESTURES.map((g) => (
-              <SelectItem key={g} value={g}>
-                <span className="mr-2">{GESTURE_EMOJIS[g]}</span>
-                {g.replace(/_/g, " ")}
+            {(["left", "right"] as const).map((hand) => (
+              <SelectItem key={hand} value={hand}>
+                {HAND_LABELS[hand]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
       <div className="grid grid-cols-3 items-center gap-4">
-        <Label htmlFor="mode">Mode</Label>
+        <Label htmlFor={id("gesture")}>Gesture</Label>
         <Select
-          onValueChange={(v: Mode) => onUpdate("mode", v)}
-          value={mapping.mode}
+          onValueChange={(v) => onUpdate("gesture", v)}
+          value={mapping.gesture}
         >
-          <SelectTrigger className="col-span-2 h-8 w-full" id="mode">
+          <SelectTrigger className="col-span-2 h-8 w-full" id={id("gesture")}>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="trigger">Trigger</SelectItem>
-            <SelectItem value="fader">Fader</SelectItem>
-            <SelectItem value="knob">Knob</SelectItem>
-            <SelectItem value="switch">Switch</SelectItem>
+            {GESTURES.map((g) => (
+              <SelectItem key={g} value={g}>
+                <GestureIcon className="size-4" gesture={g} />
+                {GESTURE_LABELS[g]}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
       <div className="grid grid-cols-3 items-center gap-4">
-        <Label htmlFor="address">Address</Label>
+        <Label htmlFor={id("mode")}>Mode</Label>
+        <Select
+          onValueChange={(v: Mode) => onUpdate("mode", v)}
+          value={mapping.mode}
+        >
+          <SelectTrigger className="col-span-2 h-8 w-full" id={id("mode")}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(Object.keys(MODE_LABELS) as Mode[]).map((mode) => (
+              <SelectItem key={mode} value={mode}>
+                {MODE_LABELS[mode]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-3 items-center gap-4">
+        <Label htmlFor={id("address")}>OSC address</Label>
         <Input
           className="col-span-2 h-8 font-mono text-xs"
-          id="address"
+          id={id("address")}
           readOnly
           value={mapping.address}
         />
       </div>
     </div>
-  );
-}
-
-function TileHeader({
-  mapping,
-  onUpdate,
-  onDelete,
-  onIsolateToggle,
-  isIsolated,
-}: {
-  mapping: Mapping;
-  onUpdate: (name: keyof Mapping, value: string | boolean) => void;
-  onDelete: () => void;
-  onIsolateToggle: () => void;
-  isIsolated: boolean;
-}) {
-  return (
-    <>
-      <HandIndicator hand={mapping.hand} />
-      <ConfigPopover
-        isIsolated={isIsolated}
-        mapping={mapping}
-        onDelete={onDelete}
-        onIsolateToggle={onIsolateToggle}
-        onUpdate={onUpdate}
-      />
-    </>
-  );
-}
-
-function TileFooter({
-  mapping,
-  dragHandleProps,
-}: {
-  mapping: Mapping;
-  dragHandleProps?: DragHandleProps;
-}) {
-  return (
-    <>
-      {dragHandleProps ? (
-        <DragHandle dragHandleProps={dragHandleProps} />
-      ) : (
-        <div />
-      )}
-      <span
-        className={cn(
-          "absolute right-2 bottom-2 text-lg leading-none",
-          mapping.hand === "right" ? "scale-x-[-1]" : ""
-        )}
-      >
-        {GESTURE_EMOJIS[mapping.gesture as Gesture]}
-      </span>
-    </>
   );
 }
 
@@ -260,18 +192,19 @@ export function MappingTile({
     deleteMapping,
     isolateMapping,
     enableAllMappings,
-    isolated,
+    isSolo,
   } = useMappingsStore(
     useShallow((state) => {
       const enabledMappings = state.mappings.filter((m) => m.enabled);
-      const isIsolated =
-        enabledMappings.length === 1 && enabledMappings[0].id === mapping.id;
       return {
         updateMapping: state.updateMapping,
         deleteMapping: state.deleteMapping,
         isolateMapping: state.isolateMapping,
         enableAllMappings: state.enableAllMappings,
-        isolated: isIsolated,
+        isSolo:
+          state.mappings.length > 1 &&
+          enabledMappings.length === 1 &&
+          enabledMappings[0].id === mapping.id,
       };
     })
   );
@@ -280,12 +213,8 @@ export function MappingTile({
     updateMapping(mapping.id, { [name]: value });
   };
 
-  const handleDelete = () => {
-    deleteMapping(mapping.id);
-  };
-
-  const handleIsolateToggle = () => {
-    if (isolated) {
+  const handleSoloToggle = () => {
+    if (isSolo) {
       enableAllMappings();
     } else {
       isolateMapping(mapping.id);
@@ -294,19 +223,52 @@ export function MappingTile({
 
   return (
     <div
-      className={`group relative flex h-full w-full flex-col justify-between overflow-hidden rounded-2xl border bg-card p-2 shadow-sm transition-all hover:shadow-md ${mapping.enabled ? "" : "opacity-50"}`}
+      className={cn(
+        "group flex h-full flex-col px-3 pt-3 pb-2.5 transition-opacity",
+        !mapping.enabled && "opacity-40"
+      )}
     >
-      <TileHeader
-        isIsolated={isolated}
-        mapping={mapping}
-        onDelete={handleDelete}
-        onIsolateToggle={handleIsolateToggle}
-        onUpdate={handleChange}
-      />
+      <div className="flex items-center justify-between gap-2">
+        <button
+          aria-label={`Reorder ${MODE_LABELS[mapping.mode]} control`}
+          className="silkscreen -m-1 cursor-grab touch-none p-1 text-print focus-visible:outline-2 focus-visible:outline-print-dim active:cursor-grabbing"
+          type="button"
+          {...dragHandleProps}
+        >
+          {MODE_LABELS[mapping.mode]}
+        </button>
+        <div className="flex items-center gap-2">
+          {isSolo ? <span className="silkscreen text-led">Solo</span> : null}
+          {mapping.enabled ? null : (
+            <span className="silkscreen text-print-dim">Off</span>
+          )}
+          <ConfigPopover
+            isSolo={isSolo}
+            mapping={mapping}
+            onDelete={() => deleteMapping(mapping.id)}
+            onSoloToggle={handleSoloToggle}
+            onUpdate={handleChange}
+          />
+        </div>
+      </div>
+
       <div className="flex flex-1 items-center justify-center">
         <MappingMonitor mapping={mapping} />
       </div>
-      <TileFooter dragHandleProps={dragHandleProps} mapping={mapping} />
+
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <span className="silkscreen truncate text-print">
+            {GESTURE_LABELS[mapping.gesture]}
+          </span>
+          <span className="silkscreen shrink-0 text-print-dim">
+            {mapping.hand === "left" ? "L" : "R"}
+          </span>
+        </div>
+        <span className="truncate font-mono text-[10px] text-print-dim">
+          {mapping.address}
+        </span>
+      </div>
     </div>
   );
 }

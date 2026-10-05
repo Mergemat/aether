@@ -11,8 +11,5 @@
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
-  },
-  "dependencies": {
-    "node-osc": "^11.7.1"
   }
 }

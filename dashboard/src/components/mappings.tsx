@@ -17,7 +17,6 @@ import { useMappingsStore } from "@/store/mappings-store";
 import type { Mapping } from "@/types";
 import { AddMappingTile } from "./mappings/add-mapping-tile";
 import { SortableMappingTile } from "./mappings/sortable-mapping-tile";
-import { Separator } from "./ui/separator";
 
 export function Mappings() {
   const mappings = useMappingsStore((state) => state.mappings);
@@ -75,23 +74,25 @@ export function Mappings() {
   }, [mappings, order]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <Separator />
-
-      <DndContext
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-        sensors={sensors}
-      >
-        <SortableContext items={order} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-3 gap-4 sm:grid-cols-4">
-            {orderedMappings.map((mapping) => (
-              <SortableMappingTile key={mapping.id} mapping={mapping} />
-            ))}
-            <AddMappingTile onClick={onNewMapping} />
-          </div>
-        </SortableContext>
-      </DndContext>
-    </div>
+    <DndContext
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
+    >
+      <SortableContext items={order} strategy={rectSortingStrategy}>
+        {/* Strips draw full borders pulled 1px over their neighbours', so
+            shared edges collapse into single hairlines and empty space in
+            the row stays blank */}
+        <section
+          aria-label="Controls"
+          className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] pt-px pl-px"
+        >
+          {orderedMappings.map((mapping) => (
+            <SortableMappingTile key={mapping.id} mapping={mapping} />
+          ))}
+          <AddMappingTile onClick={onNewMapping} />
+        </section>
+      </SortableContext>
+    </DndContext>
   );
 }

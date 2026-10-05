@@ -6,7 +6,7 @@ const root = path.resolve(import.meta.dir, "..");
 const outDir = path.join(root, "out");
 
 // Shipped as plain node_modules by electron-builder (see electron-builder.yml)
-const external = ["electron", "node-osc", "ws"];
+const external = ["electron", "ws"];
 
 export const rendererConfig = path.join(root, "dashboard/vite.config.ts");
 

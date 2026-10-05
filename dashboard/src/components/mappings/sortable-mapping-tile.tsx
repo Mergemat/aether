@@ -23,7 +23,7 @@ export function SortableMappingTile({ mapping }: { mapping: Mapping }) {
 
   return (
     <div
-      className="aspect-square"
+      className="-mt-px -ml-px h-60 border border-line bg-panel"
       ref={setNodeRef}
       style={style}
       {...attributes}
