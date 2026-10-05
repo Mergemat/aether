@@ -31,6 +31,18 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
+    {
+      // React Scan must load before React, so it gets its own entry script
+      name: "react-scan",
+      apply: "serve",
+      transformIndexHtml: () => [
+        {
+          tag: "script",
+          attrs: { type: "module", src: "/src/react-scan.ts" },
+          injectTo: "head-prepend",
+        },
+      ],
+    },
   ],
   resolve: {
     alias: {
