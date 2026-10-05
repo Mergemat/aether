@@ -10,6 +10,33 @@
     "cli",
     "dashboard"
   ],
+  "scripts": {
+    "dev": "bun scripts/dev.ts",
+    "dev:cli": "bun run --filter 'cli' dev",
+    "dev:dashboard": "bun run --filter 'dashboard' dev",
+    "build": "bun scripts/build.ts",
+    "typecheck": "tsc --noEmit",
+    "preview": "bun run build && electron .",
+    "dist": "bun run build && electron-builder",
+    "dist:mac": "bun run build && electron-builder --mac",
+    "dist:win": "bun run build && electron-builder --win",
+    "release": "bun run build && electron-builder --publish always",
+    "semantic-release": "semantic-release",
+    "release:local": "semantic-release --no-ci"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/git": "^11.0.1",
+    "@semantic-release/npm": "^13.2.0",
+    "@types/bun": "^1.4.2",
+    "@types/ws": "^8.18.2",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
+    "semantic-release": "^25.0.9",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2"
+  },
   "dependencies": {
     "electron-updater": "^6.8.9",
     "node-osc": "^11.7.1",
