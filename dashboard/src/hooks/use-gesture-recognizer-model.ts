@@ -3,6 +3,7 @@ import {
   type GestureRecognizerOptions,
 } from "@mediapipe/tasks-vision";
 import { use } from "react";
+import { IGNORED_GESTURES } from "@/lib/constants";
 import { getTask } from "@/lib/core/resolver";
 
 const DEFAULT_OPTIONS: GestureRecognizerOptions = {
@@ -12,7 +13,7 @@ const DEFAULT_OPTIONS: GestureRecognizerOptions = {
     delegate: "GPU",
   },
   cannedGesturesClassifierOptions: {
-    categoryDenylist: ["Thumbs_Up", "Thumbs_Down"],
+    categoryDenylist: [...IGNORED_GESTURES],
   },
   runningMode: "VIDEO",
   minHandDetectionConfidence: 0.9,
