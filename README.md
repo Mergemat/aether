@@ -1,94 +1,33 @@
 # Aether
 
-Control your DAW with hand gestures.
+Control your DAW with hand gestures. Aether tracks your hands through the webcam and sends OSC to Ableton Live, Bitwig or anything else that listens.
 
-![Aether Interface Placeholder](/media/main.png)
+![Aether controls](media/main.png)
 
-Aether is a desktop application that uses computer vision to track your hand movements and translate them into OSC (Open Sound Control) messages, allowing you to control music software like Ableton Live, Bitwig, or Logic Pro without touching your computer.
+Download for macOS and Windows at [aether-osc.app](https://aether-osc.app).
 
-## Project Structure
+## Controls
 
-- `electron/`: Main process handling system integration and the OSC/WebSocket bridge.
-- `dashboard/`: React-based user interface for gesture monitoring and configuration.
-- `cli/`: Command-line tool for interacting with the Aether server.
-- `www/`: Project landing page.
+Each control pairs a hand and a gesture with one OSC address, `/{hand}/{gesture}/{mode}`, sent to `127.0.0.1:7099`.
 
-## Getting Started
+| Mode | Sends |
+| --- | --- |
+| Trigger | `1` while the gesture is held, `0` when it ends |
+| Switch | Flips between `1` and `0` each time the gesture starts |
+| Fader | Hand height, `0` to `1` |
+| Knob | Hand rotation, `0` to `1` |
 
-### Prerequisites
+Gestures and their index in the address: `0` open palm, `1` fist, `2` point up, `3` victory, `4` I love you. For example, `/right/0/fader` is the right hand's height while it shows an open palm.
 
-- [Bun](https://bun.sh) (recommended) or Node.js
-- A webcam for hand tracking
-- A DAW that supports OSC (e.g., Ableton Live with TouchOSC or similar bridge)
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/mergemat/aether.git
-   cd aether
-   ```
-
-2. Install dependencies:
-   ```bash
-   bun install
-   ```
-
-3. Run in development mode:
-   ```bash
-   bun run dev
-   ```
-
-### Building for Production
-
-To create a production build for your platform:
+## Development
 
 ```bash
-# macOS
-bun run dist:mac
-
-# Windows
-bun run dist:win
+bun install
+bun run dev        # run the app
+bun run dist:mac   # build an installer (or dist:win)
 ```
 
-## How it Works
-
-1. **Detection**: The Dashboard uses your webcam and MediaPipe to detect hand landmarks.
-2. **Bridge**: Hand data is sent via WebSockets to the Electron main process (Port `8888`).
-3. **Translation**: The Electron process translates these gestures into OSC messages.
-4. **Control**: OSC messages are sent to your DAW (Port `7099` by default) to control MIDI CC or other parameters.
-
-```text
-  ┌────────────┐
-  │   Webcam   │
-  └─────┬──────┘
-        │ Video Stream
-        v
-  ┌────────────┐
-  │ Dashboard  │ (React + MediaPipe)
-  │  Frontend  │
-  └─────┬──────┘
-        │ WebSocket (Port 8888)
-        v
-  ┌────────────┐
-  │  Electron  │ (OSC Translation)
-  │  Backend   │
-  └─────┬──────┘
-        │ OSC (Port 7099)
-        v
-  ┌────────────┐
-  │    DAW     │ (Ableton, Bitwig, etc.)
-  └────────────┘
-```
-
-## Tech Stack
-
-- **Framework**: [Electron](https://www.electronjs.org/)
-- **Frontend**: [React](https://reactjs.org/) + [Vite](https://vitejs.dev/)
-- **Tracking**: [MediaPipe](https://google.github.io/mediapipe/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
-- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
-- **Communication**: [node-osc](https://github.com/MyreMylar/node-osc), [ws](https://github.com/websockets/ws)
+Hand tracking runs in a web worker in the app, and the Electron main process forwards its OSC packets over UDP. To use the dashboard in a browser instead, run `bun run dev:dashboard` and `bun run dev:cli`, which starts the same bridge on its own.
 
 ## License
 
