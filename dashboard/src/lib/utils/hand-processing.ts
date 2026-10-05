@@ -13,9 +13,8 @@ const ROTATION_LANDMARK_MAP = new Map<string, [number, number]>([
   ["Thumb_Down", [0, 9]],
 ]);
 
-const getRotationLandmarks = (gesture: string): [number, number] => {
-  return ROTATION_LANDMARK_MAP.get(gesture) ?? [0, 9];
-};
+const getRotationLandmarks = (gesture: string): [number, number] =>
+  ROTATION_LANDMARK_MAP.get(gesture) ?? [0, 9];
 
 export const processHandLandmarks = (
   landmarks: NormalizedLandmark[],

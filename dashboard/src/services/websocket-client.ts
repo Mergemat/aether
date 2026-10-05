@@ -3,16 +3,16 @@ interface WebSocketMessage {
 }
 
 interface WebSocketEventHandlers {
-  onOpen?: () => void;
   onClose?: (event: CloseEvent) => void;
   onError?: (error: Event) => void;
   onMessage?: (data: WebSocketMessage) => void;
+  onOpen?: () => void;
 }
 
 interface WebSocketConfig {
-  url: string;
-  reconnectInterval?: number;
   maxReconnectAttempts?: number;
+  reconnectInterval?: number;
+  url: string;
 }
 
 interface OscMessage {
@@ -30,7 +30,9 @@ const ENCODE_BYTES = new Uint8Array(ENCODE_BUFFER);
  * Format per message: [1 byte addr length][N bytes addr][4 bytes float32 value]
  * Returns a view into the pre-allocated buffer (zero allocations in hot path).
  */
-function encodeMessagesToBinary(messages: OscMessage[]): Uint8Array {
+function encodeMessagesToBinary(
+  messages: OscMessage[]
+): Uint8Array<ArrayBuffer> {
   let offset = 0;
 
   for (const msg of messages) {
@@ -39,7 +41,7 @@ function encodeMessagesToBinary(messages: OscMessage[]): Uint8Array {
     offset += 1;
 
     // Write address bytes (ASCII)
-    for (let i = 0; i < addrLen; i++) {
+    for (let i = 0; i < addrLen; i += 1) {
       ENCODE_BYTES[offset + i] = msg.address.charCodeAt(i);
     }
     offset += addrLen;
@@ -58,8 +60,12 @@ export class WebSocketClient {
   private readonly eventHandlers: WebSocketEventHandlers;
   private reconnectAttempts = 0;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
-  private manualClose = false;
-  private isDestroyed = false;
+  // Widened explicitly: Biome otherwise infers the literal `false` and flags
+  // every later check as always falsy, missing the writes in close/destroy
+  // biome-ignore lint/style/noInferrableTypes: see above
+  private manualClose: boolean = false;
+  // biome-ignore lint/style/noInferrableTypes: see above
+  private isDestroyed: boolean = false;
 
   constructor(
     config: WebSocketConfig,
@@ -220,7 +226,7 @@ export class WebSocketClient {
       if (this.isDestroyed) {
         return;
       }
-      this.reconnectAttempts++;
+      this.reconnectAttempts += 1;
       this.connect();
     }, interval);
   }

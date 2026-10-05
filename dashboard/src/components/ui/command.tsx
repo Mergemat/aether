@@ -47,7 +47,7 @@ function CommandDialog({
         <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
       <DialogContent
-        className={cn("overflow-hidden rounded-xl! p-0 p-0", className)}
+        className={cn("overflow-hidden rounded-xl! p-0", className)}
         showCloseButton={showCloseButton}
       >
         {children}
@@ -176,11 +176,11 @@ function CommandShortcut({
 export {
   Command,
   CommandDialog,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
-  CommandShortcut,
+  CommandList,
   CommandSeparator,
+  CommandShortcut,
 };

@@ -6,9 +6,9 @@ import { useMappingsStore } from "@/store/mappings-store";
 import type { GestureHandData } from "@/types";
 
 interface HandDataStreamerConfig {
-  wsUrl: string;
-  valueThreshold?: number;
   onStatusChange?: (status: "connected" | "disconnected" | "error") => void;
+  valueThreshold?: number;
+  wsUrl: string;
 }
 
 export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
@@ -51,9 +51,7 @@ export const useHandDataStreamer = (config: HandDataStreamerConfig) => {
   }, [storeStop]);
 
   // Cleanup on unmount
-  useEffect(() => {
-    return () => storeStop();
-  }, [storeStop]);
+  useEffect(() => () => storeStop(), [storeStop]);
 
   return { start, stop, sendHandData };
 };
