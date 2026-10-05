@@ -56,8 +56,7 @@ export const drawHandResults = (
   ctx: CanvasRenderingContext2D,
   results: GestureRecognizerResult
 ) => {
-  const width = ctx.canvas.width;
-  const height = ctx.canvas.height;
+  const { width, height } = ctx.canvas;
 
   // Clear canvas
   ctx.clearRect(0, 0, width, height);

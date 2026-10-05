@@ -183,3 +183,6 @@ dist-electron/
 *.snap
 *.deb
 *.rpm
+
+# Local TLS certificates and keys (e.g. mkcert)
+*.pem
