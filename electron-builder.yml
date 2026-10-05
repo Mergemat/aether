@@ -11,7 +11,6 @@ files:
   - out/**/*
   - package.json
   - "!node_modules/**/*"
-  - node_modules/node-osc/**/*
   - node_modules/ws/**/*
 
 extraMetadata:
