@@ -1,3 +1,9 @@
+## [0.10.0](https://github.com/Mergemat/aether/compare/v0.9.0...v0.10.0) (2026-10-05)
+
+### Features
+
+* run gesture pipeline in a worker and redesign UI as an analog panel ([#4](https://github.com/Mergemat/aether/issues/4)) ([b983d62](https://github.com/Mergemat/aether/commit/b983d622a0152bea8424dbb88b760684b801a649))
+
 ## [0.9.0](https://github.com/Mergemat/aether/compare/v0.8.0...v0.9.0) (2026-01-04)
 
 ### Features
