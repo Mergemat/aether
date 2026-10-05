@@ -1,21 +1,19 @@
 import { IconPlus } from "@tabler/icons-react";
-import { Button } from "../ui/button";
 
 interface AddMappingTileProps {
   onClick: () => void;
 }
 
+/** The empty slot at the end of the panel */
 export function AddMappingTile({ onClick }: AddMappingTileProps) {
   return (
-    <Button
-      className="group hover:bg flex aspect-square h-full w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-muted-foreground/25 border-dashed outline-none"
+    <button
+      className="-mt-px -ml-px flex h-60 flex-col items-center justify-center gap-2 border border-line bg-panel text-print-dim transition-colors hover:bg-panel-raised hover:text-print focus-visible:outline-2 focus-visible:outline-print-dim focus-visible:-outline-offset-2"
       onClick={onClick}
-      variant="outline"
+      type="button"
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted shadow-sm transition-transform group-hover:scale-105">
-        <IconPlus className="h-6 w-6 text-muted-foreground" />
-      </div>
-      Add Mapping
-    </Button>
+      <IconPlus className="size-4" stroke={1.5} />
+      <span className="silkscreen">Add control</span>
+    </button>
   );
 }
