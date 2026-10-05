@@ -8,9 +8,9 @@ import { useDetectionLoop } from "./use-detection-loop";
 import { useGestureRecognizer } from "./use-gesture-recognizer-model";
 
 interface UseGestureRecognitionProps {
-  videoRef: React.RefObject<HTMLVideoElement | null>;
   drawLandmarks?: boolean;
   onHandData?: (handData: BothHandsData) => void;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 const DEFAULT_HAND_DATA: GestureHandData = { gesture: "None", y: 0, rot: 0 };
@@ -28,7 +28,7 @@ const processResults = (
     right: { ...DEFAULT_HAND_DATA },
   };
 
-  for (let i = 0; i < results.landmarks.length; i++) {
+  for (let i = 0; i < results.landmarks.length; i += 1) {
     const landmarks = results.landmarks[i];
     const gesture = results.gestures?.[i]?.[0]?.categoryName ?? "None";
     const handedness = results.handedness[i][0].categoryName;

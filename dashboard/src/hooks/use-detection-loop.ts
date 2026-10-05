@@ -5,15 +5,15 @@ import type {
 import { useCallback, useEffect, useRef } from "react";
 
 interface UseDetectionLoopProps {
-  videoRef: React.RefObject<HTMLVideoElement | null>;
-  recognizer: GestureRecognizer | null;
   onResults: (results: GestureRecognizerResult) => void;
+  recognizer: GestureRecognizer | null;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
 }
 
 interface UseDetectionLoopReturn {
+  isRunning: boolean;
   start: () => void;
   stop: () => void;
-  isRunning: boolean;
 }
 
 export function useDetectionLoop({
@@ -83,16 +83,17 @@ export function useDetectionLoop({
     }
   }, [recognizer, start]);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       isRunningRef.current = false;
 
       if (animationFrameRef.current !== null) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-    };
-  }, []);
+    },
+    []
+  );
 
   return {
     start,

@@ -1,6 +1,19 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
-  "extends": ["ultracite/core", "ultracite/react"],
+  "extends": ["ultracite/biome/core", "ultracite/biome/react"],
+  "assist": {
+    "actions": {
+      "source": {
+        // cva emits variant classes in key order, and tailwind-merge lets the
+        // last conflicting class win, so sorting keys can change styles
+        "useSortedKeys": "off"
+      }
+    }
+  },
+  "javascript": {
+    // Injected by vite.config.ts
+    "globals": ["__MEDIAPIPE_VERSION__"]
+  },
   "linter": {
     "rules": {
       "a11y": {
@@ -13,7 +26,9 @@
       },
       "performance": {
         // Namespace imports are needed for some libraries like recharts
-        "noNamespaceImport": "off"
+        "noNamespaceImport": "off",
+        // React Compiler memoizes inline callbacks in JSX props
+        "noJsxPropsBind": "off"
       },
       "correctness": {
         // Nested component definitions are used in DayPicker components config
@@ -38,5 +53,24 @@
         "noNestedTernary": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      // Vendored shadcn/ui code, refreshed with `shadcn add --overwrite`;
+      // keep it as upstream ships it instead of diverging on style rules
+      "includes": ["src/components/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useConsistentTypeDefinitions": "off"
+          },
+          "suspicious": {
+            "noEqualsToNull": "off",
+            "noLeakedRender": "off",
+            "noShadow": "off"
+          }
+        }
+      }
+    }
+  ]
 }

@@ -24,7 +24,7 @@ const activeGesture: Record<string, string | null> = {
 // Subscribe to hand store changes and toggle switch state on rising edge
 useHandStore.subscribe((state) => {
   for (const hand of ["left", "right"] as const) {
-    const gesture = state[hand].gesture;
+    const { gesture } = state[hand];
 
     if (gesture === "None") {
       // Hand released - clear active gesture
@@ -40,8 +40,6 @@ useHandStore.subscribe((state) => {
 
 export function useSwitchState(hand: string, gesture: string): boolean {
   const key = `${hand}-${gesture}`;
-  const value = useSwitchStateStore((state) => {
-    return state.states[key] ?? false;
-  });
+  const value = useSwitchStateStore((state) => state.states[key] ?? false);
   return value;
 }

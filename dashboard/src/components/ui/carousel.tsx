@@ -15,8 +15,8 @@ type CarouselPlugin = UseCarouselParameters[1];
 
 interface CarouselProps {
   opts?: CarouselOptions;
-  plugins?: CarouselPlugin;
   orientation?: "horizontal" | "vertical";
+  plugins?: CarouselPlugin;
   setApi?: (api: CarouselApi) => void;
 }
 
@@ -237,11 +237,11 @@ function CarouselNext({
 }
 
 export {
-  type CarouselApi,
   Carousel,
+  type CarouselApi,
   CarouselContent,
   CarouselItem,
-  CarouselPrevious,
   CarouselNext,
+  CarouselPrevious,
   useCarousel,
 };

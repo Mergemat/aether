@@ -2,10 +2,10 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 interface MappingsOrderState {
-  order: string[];
-  setOrder: (order: string[]) => void;
   addId: (id: string) => void;
+  order: string[];
   removeId: (id: string) => void;
+  setOrder: (order: string[]) => void;
 }
 
 export const useMappingsOrderStore = create<MappingsOrderState>()(
@@ -18,14 +18,14 @@ export const useMappingsOrderStore = create<MappingsOrderState>()(
       },
 
       addId: (id: string) => {
-        const order = get().order;
+        const { order } = get();
         if (!order.includes(id)) {
           set({ order: [...order, id] });
         }
       },
 
       removeId: (id: string) => {
-        const order = get().order;
+        const { order } = get();
         set({ order: order.filter((i) => i !== id) });
       },
     }),

@@ -16,10 +16,10 @@ jobs: # Ensure everything below this is indented
       new_release_published: ${{ steps.semantic.outputs.new_release_published }}
       new_release_version: ${{ steps.semantic.outputs.new_release_version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - uses: oven-sh/setup-bun@v2
@@ -27,7 +27,7 @@ jobs: # Ensure everything below this is indented
         run: bun install --frozen-lockfile
       - name: Semantic Release
         id: semantic
-        uses: cycjimmy/semantic-release-action@v4
+        uses: cycjimmy/semantic-release-action@v6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -42,10 +42,10 @@ jobs: # Ensure everything below this is indented
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: v${{ needs.release.outputs.new_release_version }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - uses: oven-sh/setup-bun@v2
@@ -66,7 +66,7 @@ jobs: # Ensure everything below this is indented
       contents: write
     steps:
       # 2. Added checkout so 'gh' knows which repository to use
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Publish Draft Release
         # Now this will correctly evaluate to 'v1.2.3' (or whatever your version is)

@@ -27,7 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { GESTURE_EMOJIS, GESTURES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { useMappingsStore } from "@/store/mappings-store";
-import type { Hand, Mapping, Mode } from "@/types";
+import type { Gesture, Hand, Mapping, Mode } from "@/types";
 import { Label } from "../ui/label";
 import { MappingMonitor } from "./mapping-monitor";
 
@@ -242,7 +242,7 @@ function TileFooter({
           mapping.hand === "right" ? "scale-x-[-1]" : ""
         )}
       >
-        {GESTURE_EMOJIS[mapping.gesture]}
+        {GESTURE_EMOJIS[mapping.gesture as Gesture]}
       </span>
     </>
   );

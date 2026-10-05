@@ -105,7 +105,7 @@ function PaginationEllipsis({
     <span
       aria-hidden
       className={cn(
-        "flex size-7 items-center items-center justify-center justify-center [&_svg:not([class*='size-'])]:size-3.5",
+        "flex size-7 items-center justify-center [&_svg:not([class*='size-'])]:size-3.5",
         className
       )}
       data-slot="pagination-ellipsis"

@@ -13,11 +13,9 @@ files:
   - "!node_modules/**/*"
   - node_modules/node-osc/**/*
   - node_modules/ws/**/*
-  - node_modules/osc-min/**/*
-  - node_modules/lru-cache/**/*
 
 extraMetadata:
-  main: out/main/index.js
+  main: out/main/index.mjs
 
 # macOS configuration
 mac:
