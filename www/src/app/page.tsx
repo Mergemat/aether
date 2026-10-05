@@ -52,7 +52,7 @@ export default function Home() {
       <main>
         <section className="pt-20 pb-32 lg:pt-32">
           <Container>
-            <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
+            <div className="flex flex-col gap-16">
               <div className="flex flex-col gap-8">
                 <div className="flex flex-col gap-6">
                   <div className="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs font-medium text-secondary-foreground backdrop-blur-sm">
@@ -87,25 +87,14 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="relative lg:ml-auto w-full max-w-xl lg:max-w-none">
-                <div className="relative rounded-xl border border-border bg-card shadow-2xl overflow-hidden">
-                  <div className="absolute top-0 left-0 right-0 h-11 bg-muted/50 border-b border-border flex items-center px-4 gap-2">
-                    <div className="h-3 w-3 rounded-full bg-red-500/20 border border-red-500/50" />
-                    <div className="h-3 w-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-                    <div className="h-3 w-3 rounded-full bg-green-500/20 border border-green-500/50" />
-                  </div>
-                  <div className="mt-11">
-                    <Image
-                      src="/main.png"
-                      alt="Aether dashboard interface showing hand tracking and gesture mapping"
-                      width={1458}
-                      height={1000}
-                    />
-                  </div>
-                </div>
-                {/* Decorative background element behind image */}
-                <div className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-tr from-primary/20 via-primary/5 to-transparent blur-2xl opacity-50" />
-              </div>
+              <Image
+                src="/main.png"
+                alt="Aether controls: a fader, knob, trigger and switch, each driven by a hand gesture"
+                width={1644}
+                height={560}
+                priority
+                className="w-full rounded-lg border border-border"
+              />
             </div>
           </Container>
         </section>
