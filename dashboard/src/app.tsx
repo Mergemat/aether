@@ -30,9 +30,7 @@ function AppInner() {
     return () => stopStreamer();
   }, [startStreamer, stopStreamer]);
 
-  useEffect(() => {
-    return () => stopDetection();
-  }, [stopDetection]);
+  useEffect(() => () => stopDetection(), [stopDetection]);
 
   if (error) {
     return (
@@ -100,11 +98,13 @@ export const VisionLoader = () => (
   </div>
 );
 
-export const VisionError = ({ error }: { error: Error }) => (
+export const VisionError = ({ error }: { error: unknown }) => (
   <div className="absolute inset-0 flex items-center justify-center bg-background">
     <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-center">
       <p className="mb-2 font-bold text-red-400">Engine Error</p>
-      <p className="text-red-300/80 text-sm">{error.message}</p>
+      <p className="text-red-300/80 text-sm">
+        {error instanceof Error ? error.message : String(error)}
+      </p>
     </div>
   </div>
 );

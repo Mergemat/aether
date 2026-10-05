@@ -1,4 +1,4 @@
-import { Bundle, Client } from "node-osc";
+import { Bundle, Client, Message } from "node-osc";
 
 const osc = new Client("127.0.0.1", 7099);
 
@@ -42,10 +42,7 @@ function sendOscMessages(messages: OscMessage[]) {
 		// Multiple messages: use OSC bundle (single UDP packet)
 		const bundle = new Bundle(
 			0, // timetag 0 = immediately
-			...messages.map(({ address, value }) => ({
-				address,
-				args: [value],
-			})),
+			...messages.map(({ address, value }) => new Message(address, value)),
 		);
 		osc.send(bundle);
 	}

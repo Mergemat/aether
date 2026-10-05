@@ -13,20 +13,23 @@ interface HandDataMessage {
 
 interface HandStreamerState {
   client: WebSocketClient | null;
-  status: ConnectionStatus;
   isStreaming: boolean;
   lastSentValues: Map<string, { value: number; switchState?: boolean }>;
+  status: ConnectionStatus;
 }
 
 interface HandStreamerActions {
-  start: (wsUrl: string, onStatusChange?: (status: ConnectionStatus) => void) => void;
-  stop: () => void;
+  cleanupStaleEntries: (validAddresses: Set<string>) => void;
   sendHandData: (
     handData: { left: GestureHandData; right: GestureHandData },
     mappings: Mapping[],
     valueThreshold?: number
   ) => void;
-  cleanupStaleEntries: (validAddresses: Set<string>) => void;
+  start: (
+    wsUrl: string,
+    onStatusChange?: (status: ConnectionStatus) => void
+  ) => void;
+  stop: () => void;
 }
 
 type HandStreamerStore = HandStreamerState & HandStreamerActions;
@@ -83,11 +86,16 @@ export const useHandStreamerStore = create<HandStreamerStore>()(
     sendHandData: (handData, mappings, valueThreshold = 0.001) => {
       const { client, lastSentValues } = get();
 
-      if (!client || !client.isConnected()) {
+      if (!client?.isConnected()) {
         return;
       }
 
-      const messages = buildMessages(handData, mappings, lastSentValues, valueThreshold);
+      const messages = buildMessages(
+        handData,
+        mappings,
+        lastSentValues,
+        valueThreshold
+      );
 
       if (messages.length === 0) {
         return;
@@ -130,7 +138,10 @@ function buildMessageForMapping(
     // Rising edge: gesture just became active → toggle
     if (gestureMatched && !wasActive) {
       const newSwitchState = !(lastEntry?.switchState ?? false);
-      lastSentValues.set(mapping.address, { value: 1, switchState: newSwitchState });
+      lastSentValues.set(mapping.address, {
+        value: 1,
+        switchState: newSwitchState,
+      });
       return { address: mapping.address, value: newSwitchState ? 1 : 0 };
     }
 
@@ -162,7 +173,8 @@ function buildMessageForMapping(
 
   const value = mapping.mode === "fader" ? data.y : data.rot;
   const hasSignificantChange =
-    lastEntry?.value === undefined || Math.abs(value - lastEntry.value) >= valueThreshold;
+    lastEntry?.value === undefined ||
+    Math.abs(value - lastEntry.value) >= valueThreshold;
 
   if (!hasSignificantChange) {
     return null;
@@ -186,7 +198,12 @@ function buildMessages(
     }
 
     const data = handData[mapping.hand];
-    const message = buildMessageForMapping(mapping, data, lastSentValues, valueThreshold);
+    const message = buildMessageForMapping(
+      mapping,
+      data,
+      lastSentValues,
+      valueThreshold
+    );
 
     if (message) {
       messages.push(message);

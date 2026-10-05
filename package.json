@@ -5,42 +5,15 @@
   "author": "Mergemat",
   "license": "MIT",
   "private": true,
-  "main": "out/main/index.js",
+  "main": "out/main/index.mjs",
   "workspaces": [
     "cli",
     "dashboard"
   ],
-  "scripts": {
-    "dev": "electron-vite dev",
-    "dev:cli": "bun run --filter 'cli' dev",
-    "dev:dashboard": "bun run --filter 'dashboard' dev",
-    "build": "electron-vite build",
-    "preview": "electron-vite preview",
-    "dist": "electron-vite build && electron-builder",
-    "dist:mac": "electron-vite build && electron-builder --mac",
-    "dist:win": "electron-vite build && electron-builder --win",
-    "release": "electron-vite build && electron-builder --publish always",
-    "semantic-release": "semantic-release",
-    "release:local": "semantic-release --no-ci"
-  },
-  "devDependencies": {
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/npm": "^12.0.1",
-    "@tailwindcss/vite": "^4.1.18",
-    "@types/ws": "^8.18.1",
-    "@vitejs/plugin-react": "^5.1.2",
-    "babel-plugin-react-compiler": "^1.0.0",
-    "conventional-changelog-conventionalcommits": "^9.1.0",
-    "electron": "^39.2.7",
-    "electron-builder": "^26.0.12",
-    "electron-vite": "^5.0.0",
-    "semantic-release": "^25.0.2"
-  },
   "dependencies": {
-    "electron-updater": "^6.6.2",
-    "node-osc": "^11.1.1",
-    "react-error-boundary": "^6.0.1",
-    "ws": "^8.18.3"
+    "electron-updater": "^6.8.9",
+    "node-osc": "^11.7.1",
+    "react-error-boundary": "^6.1.6",
+    "ws": "^8.22.0"
   }
 }

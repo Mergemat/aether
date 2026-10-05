@@ -4,14 +4,14 @@ export type Hand = "left" | "right";
 export type Mode = "trigger" | "fader" | "knob" | "switch";
 
 export interface HandData {
-  y: number;
   rot: number;
+  y: number;
 }
 
 export interface GestureHandData {
   gesture: string;
-  y: number;
   rot: number;
+  y: number;
 }
 
 export interface BothHandsData {
@@ -20,12 +20,12 @@ export interface BothHandsData {
 }
 
 export interface Mapping {
-  id: string;
+  address: string;
   enabled: boolean;
   gesture: string;
   hand: Hand;
-  address: string;
+  id: string;
   mode: Mode;
 }
 
-export type Gesture = keyof typeof GESTURES;
+export type Gesture = (typeof GESTURES)[number];

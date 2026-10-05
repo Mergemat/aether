@@ -3,16 +3,16 @@ import type { HandData } from "@/types";
 
 interface HandState {
   gesture: string;
-  y: number;
-  rot: number;
   gestureData: Record<string, HandData>;
+  rot: number;
+  y: number;
 }
 
 interface RecognitionStore {
   left: HandState;
+  resetHands: () => void;
   right: HandState;
   updateHand: (side: "left" | "right", gesture: string, data: HandData) => void;
-  resetHands: () => void;
 }
 
 const initialHand = (): HandState => ({
