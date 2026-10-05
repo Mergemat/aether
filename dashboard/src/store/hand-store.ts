@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { HandData } from "@/types";
+import type { BothHandsData, GestureHandData, HandData } from "@/types";
 
 interface HandState {
   gesture: string;
@@ -10,9 +10,10 @@ interface HandState {
 
 interface RecognitionStore {
   left: HandState;
-  resetHands: () => void;
   right: HandState;
-  updateHand: (side: "left" | "right", gesture: string, data: HandData) => void;
+  setHands: (hands: BothHandsData, tracked: number) => void;
+  /** Hands in view, with or without a recognized gesture */
+  tracked: number;
 }
 
 const initialHand = (): HandState => ({
@@ -22,50 +23,46 @@ const initialHand = (): HandState => ({
   gestureData: {},
 });
 
+function nextHand(prev: HandState, data: GestureHandData): HandState {
+  const { gesture, y, rot } = data;
+
+  // Hand gone or no gesture: keep each gesture's last values for the monitors
+  if (gesture === "None") {
+    return prev.gesture === "None"
+      ? prev
+      : { ...prev, gesture: "None", y: 0, rot: 0 };
+  }
+
+  const existing = prev.gestureData[gesture];
+  if (prev.gesture === gesture && existing?.y === y && existing.rot === rot) {
+    return prev;
+  }
+
+  return {
+    gesture,
+    y,
+    rot,
+    gestureData: { ...prev.gestureData, [gesture]: { y, rot } },
+  };
+}
+
 export const useHandStore = create<RecognitionStore>((set) => ({
   left: initialHand(),
   right: initialHand(),
+  tracked: 0,
 
-  updateHand: (side, gesture, data) =>
+  // One update per frame for both hands, so subscribers run once
+  setHands: (hands, tracked) =>
     set((state) => {
-      const prev = state[side];
-      const { y, rot } = data;
-
-      // Check if gestureData for this gesture actually changed
-      const existingGestureData = prev.gestureData[gesture];
-      const gestureDataChanged =
-        !existingGestureData ||
-        existingGestureData.y !== y ||
-        existingGestureData.rot !== rot;
-
-      // Early return if nothing changed at all
-      if (prev.gesture === gesture && !gestureDataChanged) {
+      const left = nextHand(state.left, hands.left);
+      const right = nextHand(state.right, hands.right);
+      if (
+        left === state.left &&
+        right === state.right &&
+        tracked === state.tracked
+      ) {
         return state;
       }
-
-      return {
-        [side]: {
-          ...prev,
-          gesture,
-          y,
-          rot,
-          // Only create new gestureData object if the data actually changed
-          gestureData: gestureDataChanged
-            ? { ...prev.gestureData, [gesture]: data }
-            : prev.gestureData,
-        },
-      };
-    }),
-
-  resetHands: () =>
-    set((state) => {
-      // Only update if not already reset
-      if (state.left.gesture === "None" && state.right.gesture === "None") {
-        return state;
-      }
-      return {
-        left: { ...state.left, gesture: "None", y: 0, rot: 0 },
-        right: { ...state.right, gesture: "None", y: 0, rot: 0 },
-      };
+      return { left, right, tracked };
     }),
 }));

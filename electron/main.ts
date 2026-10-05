@@ -1,6 +1,13 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { app, BrowserWindow, dialog, shell } from "electron";
+import {
+	app,
+	BrowserWindow,
+	dialog,
+	powerSaveBlocker,
+	shell,
+	systemPreferences,
+} from "electron";
 import { autoUpdater } from "electron-updater";
 import { startOscServer, stopOscServer } from "./osc-server";
 
@@ -10,6 +17,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.commandLine.appendSwitch("ignore-gpu-blocklist");
 app.commandLine.appendSwitch("enable-webgl");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
+
+// Gestures drive a DAW that's usually in front of this window, so the
+// renderer must keep full speed while hidden or occluded
+app.commandLine.appendSwitch("disable-renderer-backgrounding");
+app.commandLine.appendSwitch("disable-background-timer-throttling");
+app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (process.platform === "win32") {
@@ -24,6 +37,8 @@ if (!gotTheLock) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+// Set once startup (including the camera prompt) is done
+let started = false;
 
 function createWindow() {
 	mainWindow = new BrowserWindow({
@@ -35,6 +50,7 @@ function createWindow() {
 			preload: path.join(__dirname, "../preload/index.js"),
 			contextIsolation: true,
 			nodeIntegration: false,
+			backgroundThrottling: false,
 		},
 		// macOS specific
 		titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
@@ -111,8 +127,19 @@ function setupAutoUpdater() {
 }
 
 // App lifecycle
-app.on("ready", () => {
+app.on("ready", async () => {
+	// Keep macOS App Nap from throttling the whole app in the background
+	powerSaveBlocker.start("prevent-app-suspension");
 	startOscServer();
+	// Without an explicit request, macOS may never prompt: getUserMedia then
+	// returns a live track that delivers no frames, i.e. a black preview
+	if (
+		process.platform === "darwin" &&
+		systemPreferences.getMediaAccessStatus("camera") !== "granted"
+	) {
+		await systemPreferences.askForMediaAccess("camera");
+	}
+	started = true;
 	createWindow();
 	setupAutoUpdater();
 });
@@ -123,8 +150,9 @@ app.on("window-all-closed", () => {
 });
 
 app.on("activate", () => {
-	// macOS: re-create window when dock icon is clicked
-	if (mainWindow === null) {
+	// macOS: re-create window when dock icon is clicked. This also fires on
+	// launch, while "ready" may still be waiting on the camera prompt
+	if (started && mainWindow === null) {
 		createWindow();
 	}
 });
